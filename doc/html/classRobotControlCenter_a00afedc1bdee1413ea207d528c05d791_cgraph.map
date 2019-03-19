@@ -1,7 +1,7 @@
 <map id="RobotControlCenter::loop" name="RobotControlCenter::loop">
 <area shape="rect" id="node2" href="$classRobotControlCenter.html#a989d4ee3cb480dc2edb79fb7e4893660" title="RobotControlCenter\l::fastLoop" alt="" coords="232,417,371,458"/>
 <area shape="rect" id="node30" href="$classIRCamSimplePacketComsServer.html#a16f62b2f10b0e80032e168f6d0f53844" title="IRCamSimplePacketComsServer\l::loop" alt="" coords="192,487,411,529"/>
-<area shape="rect" id="node31" href="$classGetIMU.html#a38e7793014c6e3f284992744ec723c15" title="GetIMU::loop" alt="" coords="251,553,351,580"/>
+<area shape="rect" id="node31" href="$classGetIMU.html#a6e5903641e1610bcbae4d33b7ce1fd74" title="GetIMU::loop" alt="" coords="251,553,351,580"/>
 <area shape="rect" id="node32" href="$classRobotControlCenter.html#af72cdd5fd97b1c040d4738153b69cb5c" title="RobotControlCenter\l::setup" alt="" coords="232,614,371,655"/>
 <area shape="rect" id="node3" href="$classStudentsRobot.html#a4ee4b70e8a57bb55e272cf0c78b866d5" title="StudentsRobot::pidLoop" alt="" coords="471,301,633,328"/>
 <area shape="rect" id="node21" href="$classStudentsRobot.html#a67255944c57772b33390dcc786505afe" title="StudentsRobot::updateState\lMachine" alt="" coords="459,417,645,458"/>
