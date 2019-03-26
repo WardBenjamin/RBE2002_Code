@@ -55,6 +55,11 @@ DrivingChassis::~DrivingChassis() {
 DrivingChassis::DrivingChassis(PIDMotor * left, PIDMotor * right,
 		float wheelTrackMM, float wheelRadiusMM,GetIMU * imu) {
 
+	this->IMU = imu;
+	this->myleft = left;
+	this->myright = right;
+	this->mywheelTrackMM = wheelTrackMM;
+	this->mywheelRadiusMM = wheelRadiusMM;
 }
 
 /**
