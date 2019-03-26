@@ -8,7 +8,7 @@
 #ifndef SRC_CONFIG_H_
 #define SRC_CONFIG_H_
 
-#define TEAM_NAME "IMU-Team0"
+#define TEAM_NAME "IMU-Team2"
 
 #define USE_WIFI
 //#define USE_IR_CAM
