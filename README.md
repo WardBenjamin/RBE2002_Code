@@ -2,6 +2,26 @@
 
 Template code for the RBE 2002 final project
 
+# Libraries
+
+Search and install:
+
+```
+ESP32Servo
+
+ESP32Encoder
+
+Adafruit_BNO055
+
+Adafruit Unified Sensor
+
+Esp32SimplePacketComs
+
+SimplePacketComs
+
+DFRobotIRPosition
+```
+
 ## Code Documentation Doxygen
 
 In you checked out code, open doc/html/annotated.html to see the Doxygen documentation. The best way to understand this code is to start in the Files section of the documentation, and look at the .ino file. Look at the setup and loop call graphs.
@@ -20,31 +40,23 @@ Hardware Documentation: https://github.com/WPIRoboticsEngineering/RobotInterface
 
 It is important to make sure the red connection (3.3v) is attached to the level shifter. Omitting this connection can damage your ESP32. Check Twice!
 
-## Arduino Setup and Development Computer Options
-
-See: [Development Computer Options](https://github.com/WPIRoboticsEngineering/RobotInterfaceBoard#development-computer-options)
-
 ## Where Is My Code?
 
 Your private Repository has been created for you here: https://github.com/RBE200x-lab
 
 You and your team members should find your repository made with the template code in there.
 
-## Develop Code for your project
+# Development of your code
 
-### (Optional) Install Eclipse on Personal Machine
+First install [Arduino IDE and Github Desktop](https://github.com/WPIRoboticsEngineering/RobotInterfaceBoard#arduino-and-the-esp32-toolchain)
+
+Compile your code in Arduino IDE before moving on to Eclipse. If compilation is not working, do not yet move on. 
+
+## Install Eclipse And Setup Eclipse on Personal Machine
 
  [See Eclipse install instructions in InstallEclipse.md](https://github.com/WPIRoboticsEngineering/RobotInterfaceBoard/blob/master/InstallEclipse.md)
-
-### Clone your project
-
-You may either:
-
-Use [Arduino IDE and Github Desktop](https://github.com/WPIRoboticsEngineering/RobotInterfaceBoard/blob/master/UseArduinoGithubDesktop.md)
-
-or:
-
-(Optional) Use Eclipse [using the Eclipse instructions](https://github.com/WPIRoboticsEngineering/RobotInterfaceBoard/blob/master/UseEclipse.md)
+ 
+ [Open Projects in Eclipse using the Eclipse instructions](https://github.com/WPIRoboticsEngineering/RobotInterfaceBoard/blob/master/UseEclipse.md)
 
 ## Code theory, structure and what to edit
 
