@@ -1,3 +1,8 @@
+#include <WiFi.h>
+#include <WiFiClient.h>
+#include <WiFiServer.h>
+#include <WiFiUdp.h>
+
 /**@file template.ino */
 #include <ESP32Servo.h>
 #include <ESP32Encoder.h>
