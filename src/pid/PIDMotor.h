@@ -71,6 +71,9 @@ protected:
 	double prevPos = 0;
 	double Vel = 0;
 
+
+	double openLoopCoefficent; //created for lab 3 (LT - 3/28/2019)
+
 	/**
 	 * virtual setOutput Set the motor in raw motor units
 	 *

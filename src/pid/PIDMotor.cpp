@@ -37,9 +37,9 @@ void PIDMotor::pidinit() {
  * getInterpolationUnitIncrement A unit vector from
  * 0 to 1 representing the state of the interpolation.
  */
-float PIDMotor::getInterpolationUnitIncrement(){
+float PIDMotor::getInterpolationUnitIncrement() {
 	float interpElapsed = (float) (millis() - startTime);
-	if(interpElapsed < duration && duration > 0){
+	if (interpElapsed < duration && duration > 0) {
 		// linear elapsed duration
 		unitDuration = interpElapsed / duration;
 		if (mode == SIN) {
@@ -56,7 +56,7 @@ float PIDMotor::getInterpolationUnitIncrement(){
  * @return bool is the interpolation done
  */
 bool PIDMotor::isInterpolationDone() {
-	if (getInterpolationUnitIncrement()<1)
+	if (getInterpolationUnitIncrement() < 1)
 		return false;
 	return true;
 }
@@ -64,15 +64,15 @@ bool PIDMotor::isInterpolationDone() {
 void PIDMotor::loop() {
 	calcVel(); // ensure the velocity value is kept up to date
 	if (millis() - lastTimeRunPID > myPID.sampleRateMs) {
-		lastTimeRunPID +=myPID.sampleRateMs;
+		lastTimeRunPID += myPID.sampleRateMs;
 	} else {
 		return;
 	}
 	// Done Performing linear/sinusoidal interpolation
 	if (mode != VEL) {
 		// Perform linear/sinusoidal interpolation
-		unitDuration=getInterpolationUnitIncrement();
-		if (unitDuration<1) {
+		unitDuration = getInterpolationUnitIncrement();
+		if (unitDuration < 1) {
 			float setpointDiff = endSetpoint - startSetpoint;
 			float newSetpoint = startSetpoint + (setpointDiff * unitDuration);
 			Setpoint = newSetpoint;
@@ -98,18 +98,23 @@ void PIDMotor::loop() {
 	}
 }
 void PIDMotor::velocityLoop() {
-	double openLoopTerm=0;
-	if(targetDegreesPerSecond>0)
-		openLoopTerm= myFmap(targetDegreesPerSecond,
+	double openLoopTerm = 0;
+	if (targetDegreesPerSecond > 0)
+		openLoopTerm = myFmap(targetDegreesPerSecond,
 				freeSpinMinDegreesPerSecond, getFreeSpinMaxDegreesPerSecond(),
-			0, 1);
+				0, 1); //maps targetDegreesPerSecond from 1 - 0
 	else
-		openLoopTerm= myFmap(targetDegreesPerSecond,
-						-getFreeSpinMaxDegreesPerSecond(),
-						-freeSpinMinDegreesPerSecond,
-					-1,0);
-	// TODO Apply PD velocity terms here, 2002 velocity lab
-	setOutputUnitVector(openLoopTerm);
+		openLoopTerm = myFmap(targetDegreesPerSecond,
+				-getFreeSpinMaxDegreesPerSecond(), -freeSpinMinDegreesPerSecond,
+				-1, 0); //plots targetDegreesPerSecond on a scale of -1 to 0
+
+	openLoopCoefficent = velocityPID.calc(targetDegreesPerSecond, getVelocityDegreesPerSecond()); //get the PID result, store as a coefficent (LT - 3/28/2019)
+
+	if(openLoopCoefficent != 0) { //may need to add tolerancing, only modify openLoopTerm when velocity is not correct (LT - 3/28/2019)
+		openLoopTerm = 1 - (openLoopTerm * openLoopCoefficent); //multiply by the respective coefficent (LT - 3/28/2019)
+	}
+
+	setOutputUnitVector(openLoopTerm); //now pass this term into setOutputUnitVector() which coordinates the motors reaction, output should be on a scale of 0 - 1 (LT - 3/28/2019)
 }
 
 void PIDMotor::SetTuningsVelocity(double Kp, double Kd) {
@@ -122,10 +127,12 @@ void PIDMotor::setVelocityDegreesPerSecond(float degreesPerSecond) {
 			degreesPerSecond = getFreeSpinMaxDegreesPerSecond();
 		if (degreesPerSecond < -getFreeSpinMaxDegreesPerSecond())
 			degreesPerSecond = -getFreeSpinMaxDegreesPerSecond();
-		if(degreesPerSecond>0 && degreesPerSecond < freeSpinMinDegreesPerSecond)
-			degreesPerSecond=freeSpinMinDegreesPerSecond;
-		if(degreesPerSecond<0 && degreesPerSecond > -freeSpinMinDegreesPerSecond)
-			degreesPerSecond=-freeSpinMinDegreesPerSecond;
+		if (degreesPerSecond > 0
+				&& degreesPerSecond < freeSpinMinDegreesPerSecond)
+			degreesPerSecond = freeSpinMinDegreesPerSecond;
+		if (degreesPerSecond < 0
+				&& degreesPerSecond > -freeSpinMinDegreesPerSecond)
+			degreesPerSecond = -freeSpinMinDegreesPerSecond;
 		targetDegreesPerSecond = degreesPerSecond;
 		mode = VEL;
 	} else {
@@ -269,15 +276,16 @@ void PIDMotor::stop() {
  */
 void PIDMotor::startInterpolation(float newSetpoint, long msTimeDuration,
 		interpolateMode mode) {
-	if(newSetpoint==Setpoint &&msTimeDuration== duration&& this->mode==mode)
+	if (newSetpoint == Setpoint && msTimeDuration == duration
+			&& this->mode == mode)
 		return;
 	startSetpoint = Setpoint;
 	endSetpoint = newSetpoint;
 	startTime = millis();
 	duration = msTimeDuration;
 	this->mode = mode;
-	if(msTimeDuration<1){
-		Setpoint=newSetpoint;
+	if (msTimeDuration < 1) {
+		Setpoint = newSetpoint;
 	}
 }
 
@@ -325,9 +333,8 @@ void PIDMotor::startInterpolationDegrees(float newSetpoint, long msTimeDuration,
  * 	@param speedAtPositiveCreepValue the speed in degrees per second that the motor spins when the hardware output is at creep forwards
  */
 void PIDMotor::setOutputBoundingValues(int32_t outputMin, int32_t outputMax,
-		int32_t outputStop, int32_t outputMinDeadbad,
-		int32_t outputMaxDeadbad, double ticksToDeg,
-		double getFreeSpinMaxDegreesPerSecond,
+		int32_t outputStop, int32_t outputMinDeadbad, int32_t outputMaxDeadbad,
+		double ticksToDeg, double getFreeSpinMaxDegreesPerSecond,
 		double speedAtPositiveCreepValue) {
 	this->outputMin = outputMin;
 	this->outputMax = outputMax;
@@ -336,7 +343,7 @@ void PIDMotor::setOutputBoundingValues(int32_t outputMin, int32_t outputMax,
 	this->outputMaxDeadbad = outputMaxDeadbad;
 	this->myTicksToDeg = ticksToDeg;
 	this->freeSpinMaxDegreesPerSecond = getFreeSpinMaxDegreesPerSecond;
-	freeSpinMinDegreesPerSecond=speedAtPositiveCreepValue;
+	freeSpinMinDegreesPerSecond = speedAtPositiveCreepValue;
 }
 /**
  * getOutputMin
@@ -404,6 +411,6 @@ double PIDMotor::ticksToDeg() {
  * View this variable in order to see what value is being sent to the motor directly
  *
  */
-int32_t  PIDMotor::getHardwareOutput(){
+int32_t PIDMotor::getHardwareOutput() {
 	return hardwareOutput;
 }
