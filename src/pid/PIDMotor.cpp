@@ -99,22 +99,38 @@ void PIDMotor::loop() {
 }
 void PIDMotor::velocityLoop() {
 	double openLoopTerm = 0;
-	if (targetDegreesPerSecond > 0)
+	double openLoopVel = 0;
+	if (targetDegreesPerSecond > 0) {
 		openLoopTerm = myFmap(targetDegreesPerSecond,
 				freeSpinMinDegreesPerSecond, getFreeSpinMaxDegreesPerSecond(),
 				0, 1); //maps targetDegreesPerSecond from 1 - 0
-	else
+
+		openLoopVel = myFmap(getVelocityDegreesPerSecond(),
+					freeSpinMinDegreesPerSecond, getFreeSpinMaxDegreesPerSecond(),
+					0, 1); //maps targetDegreesPerSecond from 1 - 01
+	} else {
 		openLoopTerm = myFmap(targetDegreesPerSecond,
 				-getFreeSpinMaxDegreesPerSecond(), -freeSpinMinDegreesPerSecond,
 				-1, 0); //plots targetDegreesPerSecond on a scale of -1 to 0
-
-	openLoopCoefficent = velocityPID.calc(targetDegreesPerSecond, getVelocityDegreesPerSecond()); //get the PID result, store as a coefficent (LT - 3/28/2019)
-
-	if(openLoopCoefficent != 0) { //may need to add tolerancing, only modify openLoopTerm when velocity is not correct (LT - 3/28/2019)
-		openLoopTerm = 1 - (openLoopTerm * openLoopCoefficent); //multiply by the respective coefficent (LT - 3/28/2019)
+		openLoopVel = myFmap(getVelocityDegreesPerSecond(),
+						-getFreeSpinMaxDegreesPerSecond(), -freeSpinMinDegreesPerSecond,
+						-1, 0); //plots targetDegreesPerSecond on a scale of -1 to 0
 	}
 
-	setOutputUnitVector(openLoopTerm); //now pass this term into setOutputUnitVector() which coordinates the motors reaction, output should be on a scale of 0 - 1 (LT - 3/28/2019)
+	if(openLoopTerm == 0 && openLoopVel == 0) {
+		return;
+	}
+
+	openLoopCoefficent = velocityPID.calc(openLoopTerm,  openLoopVel); //get the PID result, store as a coefficent (LT - 3/28/2019)
+
+	if(openLoopCoefficent != 0) { //may need to add tolerancing, only modify openLoopTerm when velocity is not correct (LT - 3/28/2019)
+		double send = myFmap(openLoopCoefficent * targetDegreesPerSecond, freeSpinMinDegreesPerSecond, getFreeSpinMaxDegreesPerSecond(),
+				0, 1);
+
+		setOutputUnitVector(send); //now pass this term into setOutputUnitVector() which coordinates the motors reaction, output should be on a scale of 0 - 1 (LT - 3/28/2019
+	}
+
+
 }
 
 void PIDMotor::SetTuningsVelocity(double Kp, double Kd) {
@@ -246,7 +262,7 @@ double PIDMotor::calcVel() {
 	double timeIntervalsec = timeInterval / 1000.0;
 	//Velocity in degrees per seconds
 	Vel = movementdeg / timeIntervalsec;
-	//Serial.println("Vel "+String(movementdeg)+" Per "+String(timeIntervalsec)+" is "+String(Vel)+" max "+String(getFreeSpinMaxDegreesPerSecond()));
+	Serial.println("Vel "+String(movementdeg)+" Per "+String(timeIntervalsec)+" is "+String(Vel)+" max "+String(getFreeSpinMaxDegreesPerSecond()));
 	//sets curent vals to previous
 	prevPos = curPos;
 	prevTime = curTime;
