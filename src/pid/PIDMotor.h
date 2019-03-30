@@ -143,6 +143,8 @@ public:
 	 */
 	RBEPID velocityPID;
 
+	float velocityOut = 0;
+
 	PIDMotor();
 	virtual ~PIDMotor();
 	/**

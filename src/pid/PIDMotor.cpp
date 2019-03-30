@@ -98,6 +98,9 @@ void PIDMotor::loop() {
 	}
 }
 void PIDMotor::velocityLoop() {
+	Serial.println("velocityLoop() called: targetDegreesPerSecond = " + String(targetDegreesPerSecond) + ", currentVelocity = " + String(getVelocityDegreesPerSecond()));
+
+
 	double openLoopTerm = 0;
 	double openLoopVel = 0;
 	if (targetDegreesPerSecond > 0) {
@@ -121,15 +124,20 @@ void PIDMotor::velocityLoop() {
 		return;
 	}
 
+	Serial.println("openLoopTerm = " + String(openLoopTerm) + ", openLoopVel = " + openLoopVel);
+
 	openLoopCoefficent = velocityPID.calc(openLoopTerm,  openLoopVel); //get the PID result, store as a coefficent (LT - 3/28/2019)
 
 	if(openLoopCoefficent != 0) { //may need to add tolerancing, only modify openLoopTerm when velocity is not correct (LT - 3/28/2019)
-		double send = myFmap(openLoopCoefficent * targetDegreesPerSecond, freeSpinMinDegreesPerSecond, getFreeSpinMaxDegreesPerSecond(),
-				0, 1);
+		double out = openLoopCoefficent;
 
-		setOutputUnitVector(send); //now pass this term into setOutputUnitVector() which coordinates the motors reaction, output should be on a scale of 0 - 1 (LT - 3/28/2019
+		Serial.println("openLoopCoefficent: " + String(openLoopCoefficent));
+
+
+		velocityOut += openLoopCoefficent;
+
+		setOutputUnitVector(velocityOut); //now pass this term into setOutputUnitVector() which coordinates the motors reaction, output should be on a scale of 0 - 1 (LT - 3/28/2019
 	}
-
 
 }
 
@@ -151,6 +159,16 @@ void PIDMotor::setVelocityDegreesPerSecond(float degreesPerSecond) {
 			degreesPerSecond = -freeSpinMinDegreesPerSecond;
 		targetDegreesPerSecond = degreesPerSecond;
 		mode = VEL;
+
+		 if (targetDegreesPerSecond > 0) {
+				velocityOut = myFmap(targetDegreesPerSecond,
+						freeSpinMinDegreesPerSecond, getFreeSpinMaxDegreesPerSecond(),
+						0, 1); //maps targetDegreesPerSecond from 1 - 0
+		 } else {
+			 velocityOut = myFmap(targetDegreesPerSecond,
+			 				-getFreeSpinMaxDegreesPerSecond(), -freeSpinMinDegreesPerSecond,
+			 				-1, 0); //plots targetDegreesPerSecond on a scale of -1 to 0
+		 }
 	} else {
 		stop();
 	}

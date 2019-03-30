@@ -27,7 +27,6 @@ void RBEPID::setpid(float P, float I, float D) {
  * @return a value from -1.0 to 1.0 representing the PID control signel
  */
 float RBEPID::calc(double setPoint, double curPosition) {
-	Serial.println("calc(" + String(setPoint) +" , " + String(curPosition) + ")");
 	// calculate error
 	float err = setPoint - curPosition;
 
@@ -54,8 +53,6 @@ float RBEPID::calc(double setPoint, double curPosition) {
 		out = 1;
 	if (out < -1)
 		out = -1;
-
-	Serial.println("error: " + String(out));
 
 	return out;
 }
