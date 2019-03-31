@@ -54,6 +54,8 @@ void HBridgeEncoderPIDMotor::overrideCurrentPositionHardware(int64_t val) {
 //This function should analogRead the current sense from the motor driver
 //and convert the value to current in milliamps
 double HBridgeEncoderPIDMotor::calcCur(void) {
+
+	unsigned short int value = analogRead(36); // read from analog sense pin. I would of used constant defined in config.h but keep getting some linking error
 	//read analog value
 	//convert to volts
 	//converts to current in milliamps

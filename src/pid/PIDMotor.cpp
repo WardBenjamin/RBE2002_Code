@@ -98,8 +98,6 @@ void PIDMotor::loop() {
 	}
 }
 void PIDMotor::velocityLoop() {
-	Serial.println("velocityLoop() called: targetDegreesPerSecond = " + String(targetDegreesPerSecond) + ", currentVelocity = " + String(getVelocityDegreesPerSecond()));
-
 
 	double openLoopTerm = 0;
 	double openLoopVel = 0;
@@ -124,14 +122,11 @@ void PIDMotor::velocityLoop() {
 		return;
 	}
 
-	Serial.println("openLoopTerm = " + String(openLoopTerm) + ", openLoopVel = " + openLoopVel);
 
 	openLoopCoefficent = velocityPID.calc(openLoopTerm,  openLoopVel); //get the PID result, store as a coefficent (LT - 3/28/2019)
 
 	if(openLoopCoefficent != 0) { //may need to add tolerancing, only modify openLoopTerm when velocity is not correct (LT - 3/28/2019)
 		double out = openLoopCoefficent;
-
-		Serial.println("openLoopCoefficent: " + String(openLoopCoefficent));
 
 
 		velocityOut += openLoopCoefficent;
@@ -280,7 +275,7 @@ double PIDMotor::calcVel() {
 	double timeIntervalsec = timeInterval / 1000.0;
 	//Velocity in degrees per seconds
 	Vel = movementdeg / timeIntervalsec;
-	Serial.println("Vel "+String(movementdeg)+" Per "+String(timeIntervalsec)+" is "+String(Vel)+" max "+String(getFreeSpinMaxDegreesPerSecond()));
+	//Serial.println("Vel "+String(movementdeg)+" Per "+String(timeIntervalsec)+" is "+String(Vel)+" max "+String(getFreeSpinMaxDegreesPerSecond()));
 	//sets curent vals to previous
 	prevPos = curPos;
 	prevTime = curTime;
