@@ -17,6 +17,9 @@ StudentsRobot::StudentsRobot(PIDMotor * motor1, PIDMotor * motor2,
 	this->motor3 = motor3;
 	IRCamera = IRCam;
 	IMU = imu;
+
+	this->lookup = new Lookup(); //LT (4/2/2019) - added due to the requirement 5.1
+
 #if defined(USE_IMU)
 	IMU->setXPosition(200);
 	IMU->setYPosition(0);
@@ -179,4 +182,5 @@ void StudentsRobot::pidLoop() {
 	motor2->loop();
 	motor3->loop();
 }
+
 

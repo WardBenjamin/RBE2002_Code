@@ -64,3 +64,4 @@ float RBEPID::calc(double setPoint, double curPosition) {
 void RBEPID::clearIntegralBuffer() {
 	sum_error = 0;
 }
+

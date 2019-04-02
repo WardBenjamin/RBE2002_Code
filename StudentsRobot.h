@@ -13,6 +13,7 @@
 #include "src/pid/HBridgeEncoderPIDMotor.h"
 #include "src/pid/ServoAnalogPIDMotor.h"
 #include <ESP32Servo.h>
+#include "src/pid/LookupTable.h"
 
 #include "DrivingChassis.h"
 #include "src/commands/IRCamSimplePacketComsServer.h"
@@ -53,6 +54,8 @@ enum ComStackStatusState {
  */
 class StudentsRobot {
 private:
+	Lookup *lookup;
+
 	PIDMotor * motor1;
 	PIDMotor * motor2;
 	PIDMotor * motor3;
@@ -105,3 +108,4 @@ public:
 };
 
 #endif /* STUDENTSROBOT_H_ */
+

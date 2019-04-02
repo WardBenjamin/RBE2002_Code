@@ -55,9 +55,15 @@ void HBridgeEncoderPIDMotor::overrideCurrentPositionHardware(int64_t val) {
 //and convert the value to current in milliamps
 double HBridgeEncoderPIDMotor::calcCur(void) {
 
+	const float capacitance = 1E-9, resistance = 330;
+
 	unsigned short int value = analogRead(36); // read from analog sense pin. I would of used constant defined in config.h but keep getting some linking error
-	//read analog value
-	//convert to volts
-	//converts to current in milliamps
-	return 0;
+	float voltage = map(value, 0, 1024, 0, 3.3); //now we have the voltaged
+
+	float impedance = resistance;
+
+	float current = (voltage / impedance) * 1E-3;
+
+	Serial.println("analogRead(): " + String(value) + " Current: " + String(current));
+	return current;
 }
