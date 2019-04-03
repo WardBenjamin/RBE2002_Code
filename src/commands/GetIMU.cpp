@@ -18,7 +18,7 @@ void GetIMU::event(float * buffer) {
 	}
 
 }
-boolean GetIMU::loop() {
+bool GetIMU::loop() {
 	if (!started)
 		return true;
 	imu::Vector<3> a;
@@ -117,7 +117,7 @@ void GetIMU::print() {
 					+ String(bufferINTERNAL[10]) + " , "
 					+ String(bufferINTERNAL[11]) + "\r\n ");
 	/* Display calibration status for each sensor. */
-	/*
+
 	 uint8_t system, gyro, accel, mag = 0;
 	 bno->getCalibration(&system, &gyro, &accel, &mag);
 	 Serial.print("\r\n CALIBRATION: Sys=");
@@ -128,7 +128,7 @@ void GetIMU::print() {
 	 Serial.print(accel, DEC);
 	 Serial.print(" Mag=");
 	 Serial.println(mag, DEC);
-	 */
+
 }
 
 
