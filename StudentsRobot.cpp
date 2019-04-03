@@ -181,6 +181,8 @@ void StudentsRobot::pidLoop() {
 	motor1->loop();
 	motor2->loop();
 	motor3->loop();
+
+	Serial.println("calcCur(): " + String(motor3->calcCur()) + " getVelocity(): " + String(motor3->getVelocityDegreesPerSecond()));
 }
 
 

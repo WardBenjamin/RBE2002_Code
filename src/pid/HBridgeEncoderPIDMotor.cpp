@@ -58,12 +58,12 @@ double HBridgeEncoderPIDMotor::calcCur(void) {
 	const float capacitance = 1E-9, resistance = 330;
 
 	unsigned short int value = analogRead(36); // read from analog sense pin. I would of used constant defined in config.h but keep getting some linking error
-	float voltage = map(value, 0, 1024, 0, 3.3); //now we have the voltaged
+	float voltage = (value * 3.3) / (4096); //now we have the voltaged
 
 	float impedance = resistance;
 
-	float current = (voltage / impedance) * 1E-3;
+	float current = (voltage / impedance) * 1E3;
 
-	Serial.println("analogRead(): " + String(value) + " Current: " + String(current));
+	//Serial.println("analogRead(): " + String(value) + " Current: " + String(current) + " Voltage: " + String(voltage));
 	return current;
 }
