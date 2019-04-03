@@ -101,6 +101,8 @@ StudentsRobot::StudentsRobot(PIDMotor * motor1, PIDMotor * motor2,
 void StudentsRobot::updateStateMachine() {
 	digitalWrite(WII_CONTROLLER_DETECT, 1);
 	long now = millis();
+	float t = 0;
+
 	switch (status) {
 	case StartupRobot:
 		//Do this once at startup
@@ -126,6 +128,10 @@ void StudentsRobot::updateStateMachine() {
 		nextTime = nextTime + 100; // ensure no timer drift by incremeting the target
 		// After 1000 ms, come back to this state
 		nextStatus = Running;
+
+
+		t = lookup->torque(motor3->calcCur(), ((float) motor3->getVelocityDegreesPerSecond() / 360.0) * 60); //LT (4/3/2019) - calculate the torque
+		//Serial.println(String(t)); LT (4/3/2019) - Prints out the calclated torque
 
 		// Do something
 		if (!digitalRead(BOOT_FLAG_PIN)) {
@@ -182,7 +188,10 @@ void StudentsRobot::pidLoop() {
 	motor2->loop();
 	motor3->loop();
 
-	Serial.println("calcCur(): " + String(motor3->calcCur()) + " getVelocity(): " + String(motor3->getVelocityDegreesPerSecond()));
+	//Serial.println("calcCur(): " + String(motor3->calcCur()) + " getVelocity(): " + String(motor3->getVelocityDegreesPerSecond()));
+
+	//Serial.println("RPM: " + String(((float) motor3->getVelocityDegreesPerSecond() / 360.0 * 60)));
+
 }
 
 

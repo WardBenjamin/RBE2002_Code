@@ -24,7 +24,9 @@ void RBEPID::setpid(float P, float I, float D) {
  *
  * @param setPoint is the setpoint of the PID system
  * @param curPosition the current position of the plan
- * @return a value from -1.0 to 1.0 representing the PID control signel
+ * @return a value from -1.0 to 1.0 representing the PID control signal
+ * @author Luke Trujillo
+ * @date 4/3/2019
  */
 float RBEPID::calc(double setPoint, double curPosition) {
 	// calculate error
@@ -33,28 +35,26 @@ float RBEPID::calc(double setPoint, double curPosition) {
 	// calculate derivative of error
 	float d_err = err - last_error;
 
-	// sum up the error value to send to the motor based off gain values.
-
 	if (last_error != 0) {
 		if (err / last_error < 0 && setPoint > 0) {
-			clearIntegralBuffer();
+			clearIntegralBuffer(); //clear the integral
 		} else if(setPoint < 0 && err / last_error > 0) {
-			clearIntegralBuffer();
+			clearIntegralBuffer(); //clear the integral
 		}
 	}
 
-	sum_error += err;
+	sum_error += err; //sum up the integral error
 
-	last_error = err;
+	last_error = err; //setup for the next derivative error
 
 	float out = err * kp + kd * d_err + ki * sum_error;	// simple P controller
-	//return the control signal from -1 to 1
-	if (out > 1)
+
+	if (out > 1) //the maximum output is 1
 		out = 1;
-	if (out < -1)
+	if (out < -1) // the minimum output it -1
 		out = -1;
 
-	return out;
+	return out; //return the output
 }
 
 /**
