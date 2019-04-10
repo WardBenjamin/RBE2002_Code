@@ -1,0 +1,15 @@
+Driving Chassis:
+
++ distanceToWheelAngle(float distance) 
+	-> converts a linear distance into the amount of rotations needed
+
++ chassisRotationToWheelDistance(float angle)
+	-> takes in a angle and calculates the arc length necessary
+	
++ driveForward(mmDistanceFromCurrent, msDuration)
+	-> takes in a disance and a time that the action should take
+	-> somehow makes the motor moves
+	
+	
+myleft->overrideCurrentPosition(0) will zero out the moto for relative moves otherwise
+it is in absolute mode

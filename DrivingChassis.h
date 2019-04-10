@@ -10,6 +10,15 @@
 #include "src/pid/PIDMotor.h"
 #include "src/commands/GetIMU.h"
 #include "config.h"
+#include <math.h>
+
+enum ChassisState {
+	START,
+	WORKING,
+	DONE,
+	STANDBY
+};
+
 /**
  * DrivingChassis encapsulates a 2 wheel differential steered chassis that drives around
  *
@@ -30,6 +39,8 @@ private:
 	GetIMU * IMU;
 	float mywheelTrackMM;
 	float mywheelRadiusMM;
+
+	ChassisState state;
 	/**
 	 * Compute a delta in wheel angle to traverse a specific distance
 	 *
@@ -106,6 +117,8 @@ public:
 	 *  @note this function is fast-return and should not block
 	 */
 	bool isChassisDoneDriving();
+
+	void loop();
 
 };
 

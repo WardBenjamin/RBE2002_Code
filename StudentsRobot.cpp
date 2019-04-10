@@ -93,6 +93,9 @@ StudentsRobot::StudentsRobot(PIDMotor * motor1, PIDMotor * motor2,
 	pinMode(BOOT_FLAG_PIN, INPUT_PULLUP);
 	//Test IO
 	pinMode(WII_CONTROLLER_DETECT, OUTPUT);
+
+
+	this->chassis = new DrivingChassis(this->motor1, this->motor2, 220, 450, IMU);
 }
 /**
  * Seperate from running the motor control,
@@ -129,8 +132,9 @@ void StudentsRobot::updateStateMachine() {
 		// After 1000 ms, come back to this state
 		nextStatus = Running;
 
+		this->chassis->loop(); // maybe this goes here? LT - (4/9/2019)
 
-		t = lookup->torque(motor3->calcCur(), ((float) motor3->getVelocityDegreesPerSecond() / 360.0) * 60); //LT (4/3/2019) - calculate the torque
+		//t = lookup->torque(motor3->calcCur(), ((float) motor3->getVelocityDegreesPerSecond() / 360.0) * 60); //LT (4/3/2019) - calculate the torque
 		//Serial.println(String(t)); LT (4/3/2019) - Prints out the calclated torque
 
 		// Do something
@@ -184,14 +188,11 @@ void StudentsRobot::updateStateMachine() {
  * This will read from the concoder and write to the motors and handle the hardware interface.
  */
 void StudentsRobot::pidLoop() {
+
+
 	motor1->loop();
 	motor2->loop();
 	motor3->loop();
-
-	//Serial.println("calcCur(): " + String(motor3->calcCur()) + " getVelocity(): " + String(motor3->getVelocityDegreesPerSecond()));
-
-	//Serial.println("RPM: " + String(((float) motor3->getVelocityDegreesPerSecond() / 360.0 * 60)));
-
 }
 
 

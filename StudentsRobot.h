@@ -63,10 +63,12 @@ private:
 	float lsensorVal=0;
 	float rsensorVal=0;
 	long nextTime =0;
-  long startTime =0;
+	long startTime =0;
 	RobotStateMachine nextStatus = StartupRobot;
 	IRCamSimplePacketComsServer * IRCamera;
 	GetIMU * IMU;
+
+	DrivingChassis *chassis; // LT - (4/9/2019)
 public:
 	/**
 	 * Constructor for StudentsRobot

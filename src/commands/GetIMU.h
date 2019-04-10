@@ -25,6 +25,9 @@ private:
 	volatile float  bufferINTERNAL[NUM_IMU_VALUES];
 	bool started;
 	int updateIndex=0;
+
+	float baseAngle;
+
 public:
 	// Packet ID needs to be set
 	GetIMU() :
@@ -35,6 +38,8 @@ public:
 		setXPosition(0);
 		setYPosition(0);
 		setZPosition(0);
+
+		baseAngle = 9999;
 }
 	//User function to be called when a packet comes in
 	// Buffer contains data from the packet cming in at the start of the function
@@ -57,9 +62,16 @@ public:
 	float getEULER_elevation();
 	float getEULER_tilt();
 
+	float getAngleFromBase();
+
 	void setXPosition(float x);
 	void setYPosition(float y);
 	void setZPosition(float z);
+
+	void addToXPosition(float x);
+	void addToYPosition(float y);
+	void addToZPosition(float z);
+
 };
 
 

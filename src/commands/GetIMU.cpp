@@ -50,6 +50,11 @@ bool GetIMU::loop() {
 		bufferINTERNAL[10] = e.y();// elevation
 		bufferINTERNAL[11] = e.x();// azimuth
 	}
+
+	if(baseAngle == 999 && updateIndex == 3) {
+		baseAngle = e.x();
+	}
+
 	updateIndex++;
 	if (updateIndex == 4) {
 		updateIndex = 0;
@@ -66,6 +71,17 @@ void GetIMU::setYPosition(float y){
 void GetIMU::setZPosition(float z){
 	bufferINTERNAL[14] =z;
 }
+
+void GetIMU::addToXPosition(float x){
+	bufferINTERNAL[12] += x;
+}
+void GetIMU::addToYPosition(float y){
+	bufferINTERNAL[13] += y;
+}
+void GetIMU::addToZPosition(float z){
+	bufferINTERNAL[14] += z;
+}
+
 float GetIMU::getLINEARACCEL_X() {
 	return bufferINTERNAL[0];
 }
@@ -101,6 +117,14 @@ float GetIMU::getEULER_elevation() {
 }
 float GetIMU::getEULER_tilt() {
 	return bufferINTERNAL[9];
+}
+
+/**
+ * This function will return the deviation from the stary angle. idk if it works
+ * @author Luke Trujillo
+ */
+float GetIMU::getAngleFromBase() {
+	return (getEULER_azimuth() - this->baseAngle);
 }
 
 void GetIMU::startSensor(Adafruit_BNO055 * _bno) {

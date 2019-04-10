@@ -20,7 +20,7 @@
  * @return the wheel angle delta in degrees
  */
 float DrivingChassis::distanceToWheelAngle(float distance) {
-	return 0;
+	return (distance * 360) / (2 * PI * this->mywheelRadiusMM); // LT - (4/9/2019)
 }
 
 /**
@@ -37,7 +37,7 @@ float DrivingChassis::distanceToWheelAngle(float distance) {
  * @return is the linear distance the wheel needs to travel given the this CHassis's wheel track
  */
 float DrivingChassis::chassisRotationToWheelDistance(float angle) {
-	return 0;
+	return ((2 * PI * this->mywheelTrackMM) / 2) * (angle / 360.0); // LT - (4/9/2019)
 }
 
 DrivingChassis::~DrivingChassis() {
@@ -60,6 +60,8 @@ DrivingChassis::DrivingChassis(PIDMotor * left, PIDMotor * right,
 	this->myright = right;
 	this->mywheelTrackMM = wheelTrackMM;
 	this->mywheelRadiusMM = wheelRadiusMM;
+
+	this->state = START;
 }
 
 /**
@@ -73,8 +75,14 @@ DrivingChassis::DrivingChassis(PIDMotor * left, PIDMotor * right,
  * 		 allow for relative moves. Otherwise the motor is always in ABSOLUTE mode
  */
 void DrivingChassis::driveForward(float mmDistanceFromCurrent, int msDuration) {
+	this->myleft->overrideCurrentPosition(0);
+	this->myright->overrideCurrentPosition(0);
 
+	this->myleft->setSetpoint(mmDistanceFromCurrent);
+	this->myright->setSetpoint(mmDistanceFromCurrent);
 
+	this->myleft->setVelocityDegreesPerSecond(distanceToWheelAngle(mmDistanceFromCurrent) / (msDuration / 1000));
+	this->myright->setVelocityDegreesPerSecond(distanceToWheelAngle(mmDistanceFromCurrent) / (msDuration / 1000));
 }
 
 /**
@@ -104,6 +112,47 @@ void DrivingChassis::turnDegrees(float degreesToRotateBase, int msDuration) {
  *  @note this function is fast-return and should not block
  */
 bool DrivingChassis::isChassisDoneDriving() {
-	return false;
+	return 0;
 }
 
+/**
+ * This function should be called by StudentRobot's loop everytime and manage the setpoints of the robot.
+ * @author Luke Trujillo
+ *
+ * @note This will most likely be where should implement Kevin's algorithm for Lab 4.
+ */
+void DrivingChassis::loop() {
+
+	if(state == 0) {
+		state = WORKING;
+		this->myleft->setSetpoint(600);
+		this->myright->setSetpoint(600);
+	} else if(state == 1) {
+		//step 1 update absolute position of the motor
+		float distanceLeft = this->myleft->getPosition();
+		float distanceRight = this->myright->getPosition();
+
+		//take the average of the two to find a approx distance traveled.
+		float increase = (distanceLeft + distanceRight) / 2;
+
+		float angle = IMU->getAngleFromBase();
+
+
+		float xComponent = increase * cos(angle);
+		float yComponent = increase * sin(angle);
+
+		IMU->addToXPosition(xComponent);
+		IMU->addToYPosition(yComponent);
+
+		this->driveForward(600 - increase, 200);
+
+		if(isChassisDoneDriving()) {
+			this->state = DONE;
+		}
+	} else if(state == DONE) {
+
+	} else if(state == STANDBY) {
+
+	}
+
+}
