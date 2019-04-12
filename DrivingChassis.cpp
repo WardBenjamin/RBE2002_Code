@@ -62,13 +62,13 @@ DrivingChassis::DrivingChassis(PIDMotor * left, PIDMotor * right,
 	this->mywheelRadiusMM = wheelRadiusMM;
 
 	this->xPID = new RBEPID();
-	this->xPID->setpid(1, 0, 0);
+	this->xPID->setpid(0.5, 0, 0);
 
 	this->yPID = new RBEPID();
-	this->yPID->setpid(1, 0, 0);
+	this->yPID->setpid(0.5, 0, 0);
 
 	this->anglePID = new RBEPID();
-	this->anglePID->setpid(1, 0, 0);
+	this->anglePID->setpid(0.5, 0, 0);
 
 	this->isYCorrectionMode = false;
 
@@ -225,7 +225,12 @@ void DrivingChassis::loop() {
 		float xOut = xPID->calc(IMU->getXPosition(), sineTargetX);
 		float yOut = yPID->calc(IMU->getYPosition(), sineTargetY);
 
-		float angleOut = anglePID->calc(lastAngle, sineAngle); //remove angle toggle point by subtracting 150
+		if (timesLoop % 10 || timesLoop == 0) {
+			Serial.println("xOut: " + String(xOut));
+			Serial.println("yOut: " + String(yOut));
+		}
+
+		float angleOut = anglePID->calc(IMU->getEULER_azimuth(), sineAngle); //remove angle toggle point by subtracting 150
 
 		//4. choose y or theta correction term
 		float upperLimit = 3, switchLimit = 0.1;
@@ -241,8 +246,8 @@ void DrivingChassis::loop() {
 
 		float powerTerm = xOut;
 
-		float leftPower = powerTerm - turningTerm;
-		float rightPower = turningTerm + powerTerm;
+		float leftPower = -powerTerm + turningTerm;
+		float rightPower = -turningTerm + powerTerm;
 
 		if (timesLoop % 10 || timesLoop == 0) {
 
@@ -250,8 +255,8 @@ void DrivingChassis::loop() {
 			Serial.println("Right Motor Power: " + String(rightPower));
 		}
 
-		myleft->setVelocityDegreesPerSecond(leftPower * myleft->getFreeSpinMaxDegreesPerSecond());
-		myright->setVelocityDegreesPerSecond(rightPower * myright->getFreeSpinMaxDegreesPerSecond());
+		myleft->setVelocityDegreesPerSecond(leftPower * 400);
+		myright->setVelocityDegreesPerSecond(rightPower * 400);
 
 		timesLoop++;
 
