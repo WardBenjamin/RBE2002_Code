@@ -62,13 +62,13 @@ DrivingChassis::DrivingChassis(PIDMotor * left, PIDMotor * right,
 	this->mywheelRadiusMM = wheelRadiusMM;
 
 	this->xPID = new RBEPID();
-	this->xPID->setpid(0.1, 0, 0);
+	this->xPID->setpid(1, 0, 0);
 
 	this->yPID = new RBEPID();
-	this->yPID->setpid(0.1, 0, 0);
+	this->yPID->setpid(1, 0, 0);
 
 	this->anglePID = new RBEPID();
-	this->anglePID->setpid(0.1, 0, 0);
+	this->anglePID->setpid(1, 0, 0);
 
 	this->isYCorrectionMode = false;
 
@@ -107,6 +107,7 @@ void DrivingChassis::driveForward(float mmDistanceFromCurrent, int msDuration) {
 
 	this->myleft->setVelocityDegreesPerSecond(targetVelocity);
 	this->myright->setVelocityDegreesPerSecond(targetVelocity);
+
 }
 
 /**
@@ -151,6 +152,7 @@ void DrivingChassis::loop() {
 
 		if (targetAngle == 9999) {
 			targetAngle = IMU->getEULER_azimuth();
+			lastAngle = targetAngle;
 		}
 
 		//step 1: determine the location
@@ -164,12 +166,10 @@ void DrivingChassis::loop() {
 		float distanceRight = myright->getPosition() - lastRightEncoder;
 		distanceRight *= (2 * PI * mywheelRadiusMM) / 3200;
 
-		float changeDistance = (distanceRight + distanceLeft) / 2;
+		float changeDistance = abs(distanceRight) + abs(distanceLeft) / 2;
 
 		float changeX = changeDistance * cos(lastAngle);
 		float changeY = changeDistance * sin(lastAngle);
-
-		lastAngle = IMU->getEULER_azimuth(); //update the last angle
 
 
 		if (timesLoop % 10 || timesLoop == 0) {
@@ -250,14 +250,15 @@ void DrivingChassis::loop() {
 			Serial.println("Right Motor Power: " + String(rightPower));
 		}
 
-		myleft->setVelocityDegreesPerSecond(leftPower * -400);
-		myright->setVelocityDegreesPerSecond(rightPower * 400);
+		myleft->setVelocityDegreesPerSecond(leftPower * myleft->getFreeSpinMaxDegreesPerSecond());
+		myright->setVelocityDegreesPerSecond(rightPower * myright->getFreeSpinMaxDegreesPerSecond());
 
 		timesLoop++;
 
 
 		lastLeftEncoder = myleft->getPosition();
 		lastRightEncoder = myright->getPosition();
+		lastAngle = IMU->getEULER_azimuth(); //update the last angle
 	}
 }
 
