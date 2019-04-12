@@ -22,6 +22,8 @@ public:
 	void print();
 	float readX(int i); ///1024.0;
 	float readY(int i);
+
+	long last;
 };
 
 #endif /* SRC_COMS_IRCAMSIMPLEPACKETCOMSSERVER_H_ */

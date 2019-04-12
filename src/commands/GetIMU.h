@@ -18,13 +18,15 @@
 class GetIMU: public PacketEventAbstract {
 private:
 	Adafruit_BNO055 * bno;
-//	imu::Vector<3> v;
-//	imu::Vector<3> a;
-//	imu::Vector<3> g;
-//	imu::Vector<3> e;
+	imu::Vector<3> v;
+	imu::Vector<3> a;
+	imu::Vector<3> g;
+	imu::Vector<3> e;
 	volatile float  bufferINTERNAL[NUM_IMU_VALUES];
 	bool started;
 	int updateIndex=0;
+
+	long last = -1;
 
 	float baseAngle;
 
@@ -67,6 +69,9 @@ public:
 	void setXPosition(float x);
 	void setYPosition(float y);
 	void setZPosition(float z);
+
+	float getXPosition();
+	float getYPosition();
 
 	void addToXPosition(float x);
 	void addToYPosition(float y);

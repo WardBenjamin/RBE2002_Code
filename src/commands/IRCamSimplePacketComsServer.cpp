@@ -28,12 +28,18 @@ void IRCamSimplePacketComsServer::loop() {
 	Wire.flush();
 	camera->requestPosition();
 	if (camera->available()) {
+
+		//Serial.println("between: " + String(micros() - last));
+		long now = micros();
 		for (int i = 0; i < 4; i++) {
 			bufferCache[(i * 2)] = ((float) camera->readX(i)); ///1024.0;
 			//bufferCache[(i * 2)] = bufferCache[(i * 2)]>0?33.0/bufferCache[(i * 2)]:0;
 			bufferCache[(i * 2) + 1] = ((float) camera->readY(i));	///1024.0;
 			//bufferCache[(i * 2) + 1] = bufferCache[(i * 2) + 1]>0?23.0/bufferCache[(i * 2) + 1]:0;
 		}
+		//Serial.println("time taken: " + String(micros() - now));
+
+		last = micros();
 	}else{
 		Serial.println("Error reading IR cam");
 	}

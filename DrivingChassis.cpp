@@ -53,7 +53,7 @@ DrivingChassis::~DrivingChassis() {
  * @param wheelRadiusMM is the measurment in milimeters of the radius of the wheels
  */
 DrivingChassis::DrivingChassis(PIDMotor * left, PIDMotor * right,
-		float wheelTrackMM, float wheelRadiusMM,GetIMU * imu) {
+		float wheelTrackMM, float wheelRadiusMM, GetIMU * imu) {
 
 	this->IMU = imu;
 	this->myleft = left;
@@ -61,7 +61,18 @@ DrivingChassis::DrivingChassis(PIDMotor * left, PIDMotor * right,
 	this->mywheelTrackMM = wheelTrackMM;
 	this->mywheelRadiusMM = wheelRadiusMM;
 
-	this->state = START;
+	this->xPID = new RBEPID();
+	this->xPID->setpid(0.1, 0, 0);
+
+	this->yPID = new RBEPID();
+	this->yPID->setpid(0.1, 0, 0);
+
+	this->anglePID = new RBEPID();
+	this->anglePID->setpid(0.1, 0, 0);
+
+	this->isYCorrectionMode = false;
+
+	this->state = STANDBY;
 }
 
 /**
@@ -75,14 +86,27 @@ DrivingChassis::DrivingChassis(PIDMotor * left, PIDMotor * right,
  * 		 allow for relative moves. Otherwise the motor is always in ABSOLUTE mode
  */
 void DrivingChassis::driveForward(float mmDistanceFromCurrent, int msDuration) {
+	this->targetTime = msDuration;
+
+	targetX = mmDistanceFromCurrent;
+	targetY = 0;
+
+	IMU->setXPosition(0);
+	IMU->setYPosition(0);
+	IMU->setZPosition(0);
+
 	this->myleft->overrideCurrentPosition(0);
 	this->myright->overrideCurrentPosition(0);
 
-	this->myleft->setSetpoint(mmDistanceFromCurrent);
-	this->myright->setSetpoint(mmDistanceFromCurrent);
+	state = DRIVING;
 
-	this->myleft->setVelocityDegreesPerSecond(distanceToWheelAngle(mmDistanceFromCurrent) / (msDuration / 1000));
-	this->myright->setVelocityDegreesPerSecond(distanceToWheelAngle(mmDistanceFromCurrent) / (msDuration / 1000));
+	targetVelocity = this->distanceToWheelAngle(mmDistanceFromCurrent)
+			/ (msDuration / 1000);
+
+	startTime = millis();
+
+	this->myleft->setVelocityDegreesPerSecond(targetVelocity);
+	this->myright->setVelocityDegreesPerSecond(targetVelocity);
 }
 
 /**
@@ -112,7 +136,7 @@ void DrivingChassis::turnDegrees(float degreesToRotateBase, int msDuration) {
  *  @note this function is fast-return and should not block
  */
 bool DrivingChassis::isChassisDoneDriving() {
-	return 0;
+	return false;
 }
 
 /**
@@ -123,36 +147,117 @@ bool DrivingChassis::isChassisDoneDriving() {
  */
 void DrivingChassis::loop() {
 
-	if(state == 0) {
-		state = WORKING;
-		this->myleft->setSetpoint(600);
-		this->myright->setSetpoint(600);
-	} else if(state == 1) {
-		//step 1 update absolute position of the motor
-		float distanceLeft = this->myleft->getPosition();
-		float distanceRight = this->myright->getPosition();
+	if (state == DRIVING) {
 
-		//take the average of the two to find a approx distance traveled.
-		float increase = (distanceLeft + distanceRight) / 2;
-
-		float angle = IMU->getAngleFromBase();
-
-
-		float xComponent = increase * cos(angle);
-		float yComponent = increase * sin(angle);
-
-		IMU->addToXPosition(xComponent);
-		IMU->addToYPosition(yComponent);
-
-		this->driveForward(600 - increase, 200);
-
-		if(isChassisDoneDriving()) {
-			this->state = DONE;
+		if (targetAngle == 9999) {
+			targetAngle = IMU->getEULER_azimuth();
 		}
-	} else if(state == DONE) {
 
-	} else if(state == STANDBY) {
+		//step 1: determine the location
+		float x = this->IMU->getXPosition();
+		float y = this->IMU->getYPosition();
 
+		float distanceLeft= myleft->getPosition() - lastLeftEncoder;
+		distanceLeft /= 3200;
+		distanceLeft *= (2 * PI * this->mywheelRadiusMM);
+
+		float distanceRight = myright->getPosition() - lastRightEncoder;
+		distanceRight *= (2 * PI * mywheelRadiusMM) / 3200;
+
+		float changeDistance = (distanceRight + distanceLeft) / 2;
+
+		float changeX = changeDistance * cos(lastAngle);
+		float changeY = changeDistance * sin(lastAngle);
+
+		lastAngle = IMU->getEULER_azimuth(); //update the last angle
+
+
+		if (timesLoop % 10 || timesLoop == 0) {
+			Serial.println("-------[NEW LOOP]--------\n\n");
+			Serial.println("1. Determine the location of the robot debug");
+
+			Serial.println("IMU: (" + String(IMU->getXPosition()) + ", " + String(IMU->getYPosition()) + ")");
+			Serial.println(
+					"Target: (" + String(this->targetX) + ", "
+							+ String(this->targetY) + ", "
+							+ String(this->targetAngle) + " deg, " + String(this->targetTime)+ " ms)");
+			Serial.println("distanceLeft: " + String(distanceLeft));
+			Serial.println("distanceRight: " + String(distanceRight));
+			Serial.println("changeDistance: " + String(changeDistance));
+			Serial.println("changeX: " + String(changeX));
+			Serial.println("changeY: " + String(changeY));
+			Serial.println("------\n\n");
+		}
+		IMU->setXPosition(x + changeX);
+		IMU->setYPosition(y + changeY);
+
+		//2. figure out what corrections need to happen
+		float elapsed = myright->myFmap(millis() - startTime, 0, targetTime, 0,
+				1);
+
+		 float elapsed_time = millis() - startTime;
+
+		float sineTerm = 1 - ((cos(-PI * (elapsed_time / targetTime)) / 2) + 0.5); //this is wrong
+
+		float sineTargetX = sineTerm * targetX;
+		float sineTargetY = sineTerm * targetY;
+		float sineAngle = sineTerm * targetAngle; // how is this to be used
+
+		if (timesLoop % 10 || timesLoop == 0) {
+			Serial.println("2. Figure out what needs to happen");
+			Serial.println("elapsed: " + String(elapsed));
+			Serial.println("sineTerm: " + String(sineTerm));
+			Serial.println("elapsed_time: " + String(elapsed_time));
+
+			Serial.println("\n\n-----\n\n");
+		}
+
+		if(elapsed == 1 || sineTerm == 1) { //need to add back sineTem term
+			 state = DONE;
+
+			 myleft->stop();
+			 myright->stop();
+
+			 return;
+		 }
+
+		//3. compute PID result
+		float xOut = xPID->calc(IMU->getXPosition(), sineTargetX);
+		float yOut = yPID->calc(IMU->getYPosition(), sineTargetY);
+
+		float angleOut = anglePID->calc(lastAngle, sineAngle); //remove angle toggle point by subtracting 150
+
+		//4. choose y or theta correction term
+		float upperLimit = 3, switchLimit = 0.1;
+
+		float turningTerm = angleOut;
+
+		if (abs(targetY - changeY) > upperLimit) { //might be wrong
+			isYCorrectionMode = true;
+			turningTerm = yOut;
+		} else if (isYCorrectionMode && abs(targetY - changeY) < switchLimit) {
+			isYCorrectionMode = false;
+		}
+
+		float powerTerm = xOut;
+
+		float leftPower = powerTerm - turningTerm;
+		float rightPower = turningTerm + powerTerm;
+
+		if (timesLoop % 10 || timesLoop == 0) {
+
+			Serial.println("Left Motor Power: " + String(leftPower));
+			Serial.println("Right Motor Power: " + String(rightPower));
+		}
+
+		myleft->setVelocityDegreesPerSecond(leftPower * -400);
+		myright->setVelocityDegreesPerSecond(rightPower * 400);
+
+		timesLoop++;
+
+
+		lastLeftEncoder = myleft->getPosition();
+		lastRightEncoder = myright->getPosition();
 	}
-
 }
+

@@ -93,14 +93,6 @@ protected:
 	float startTime = 0;
 	float duration = 0;
 
-
-	/**
-	 * myFmap local mapping function
-	 *
-	 *  Custom version of map with bound clamping built in.
-	 */
-	float myFmap(float x, float in_min, float in_max, float out_min,
-			float out_max);
 	/**
 	 * Get the setpoint
 	 *
@@ -108,6 +100,14 @@ protected:
 	 */
 	float getSetPoint();
 public:
+	/**
+		 * myFmap local mapping function
+		 *
+		 *  Custom version of map with bound clamping built in.
+		 */
+		float myFmap(float x, float in_min, float in_max, float out_min,
+				float out_max);
+
 	/**
 	 * The value that is being sent to the hardware
 	 *

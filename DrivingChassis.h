@@ -8,13 +8,13 @@
 #ifndef DRIVINGCHASSIS_H_
 #define DRIVINGCHASSIS_H_
 #include "src/pid/PIDMotor.h"
+#include "RBEPID.h"
 #include "src/commands/GetIMU.h"
 #include "config.h"
 #include <math.h>
 
 enum ChassisState {
-	START,
-	WORKING,
+	DRIVING,
 	DONE,
 	STANDBY
 };
@@ -40,7 +40,16 @@ private:
 	float mywheelTrackMM;
 	float mywheelRadiusMM;
 
-	ChassisState state;
+	float targetX = 0, targetY = 0, targetAngle = 9999, targetTime = 0, targetVelocity;
+	float startTime;
+
+	int lastLeftEncoder = 0, lastRightEncoder = 0, lastAngle = 0;;
+
+	RBEPID *xPID, *yPID, *anglePID;
+
+	bool isYCorrectionMode;
+
+	long timesLoop = 0;
 	/**
 	 * Compute a delta in wheel angle to traverse a specific distance
 	 *
@@ -69,6 +78,8 @@ private:
 	 */
 	float chassisRotationToWheelDistance(float angle);
 public:
+	ChassisState state;
+
 	virtual ~DrivingChassis();
 
 	/**

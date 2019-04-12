@@ -21,35 +21,46 @@ void GetIMU::event(float * buffer) {
 bool GetIMU::loop() {
 	if (!started)
 		return true;
-	imu::Vector<3> a;
-	imu::Vector<3> v;
-	imu::Vector<3> g;
-	imu::Vector<3> e;
+
+	long now = micros();
+
+	//Serial.println("between: " + String(now - last));
+
 	switch (updateIndex) {
 	case (0):
 		a = bno->getVector(Adafruit_BNO055::VECTOR_LINEARACCEL);
 		bufferINTERNAL[0] = a.z();
 		bufferINTERNAL[1] = a.y();
 		bufferINTERNAL[2] = a.x();
+
+		//Serial.println("LinearAccel: " + String(micros() - now));
 		break;
 	case (1):
 		v = bno->getVector(Adafruit_BNO055::VECTOR_GYROSCOPE);
 		bufferINTERNAL[3] = v.z();
 		bufferINTERNAL[4] = v.y();
 		bufferINTERNAL[5] = v.x();
+
+		//Serial.println("gyro: " + String(micros() - now));
 		break;
 	case 2:
 		g = bno->getVector(Adafruit_BNO055::VECTOR_GRAVITY);
 		bufferINTERNAL[6] = g.z();
 		bufferINTERNAL[7] = g.y();
 		bufferINTERNAL[8] = g.x();
+
+		//Serial.println("gravity: " + String(micros() - now));
 		break;
 	case 3:
 		e = bno->getVector(Adafruit_BNO055::VECTOR_EULER);
 		bufferINTERNAL[9] = e.z();// tilt
 		bufferINTERNAL[10] = e.y();// elevation
 		bufferINTERNAL[11] = e.x();// azimuth
+
+		//Serial.println("euler: " + String(micros() - now));
 	}
+
+	last = micros();
 
 	if(baseAngle == 999 && updateIndex == 3) {
 		baseAngle = e.x();
@@ -110,7 +121,7 @@ float GetIMU::getGRAVITY_Z() {
 	return bufferINTERNAL[8];
 }
 float GetIMU::getEULER_azimuth() {
-	return bufferINTERNAL[11];
+	return e.x();
 }
 float GetIMU::getEULER_elevation() {
 	return bufferINTERNAL[10];
@@ -153,6 +164,12 @@ void GetIMU::print() {
 	 Serial.print(" Mag=");
 	 Serial.println(mag, DEC);
 
+}
+float GetIMU::getXPosition() {
+	return bufferINTERNAL[12];
+}
+float GetIMU::getYPosition() {
+	return bufferINTERNAL[13];
 }
 
 

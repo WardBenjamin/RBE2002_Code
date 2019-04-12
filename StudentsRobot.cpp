@@ -110,6 +110,7 @@ void StudentsRobot::updateStateMachine() {
 	case StartupRobot:
 		//Do this once at startup
 		status = StartRunning;
+
 		Serial.println("StudentsRobot::updateStateMachine StartupRobot here ");
 		break;
 	case StartRunning:
@@ -126,13 +127,16 @@ void StudentsRobot::updateStateMachine() {
 		nextTime = startTime + 1000; // the next timer loop should be 1000ms after the motors stop
 		break;
 	case Running:
+
+		if(this->chassis->state == STANDBY) {
+			this->chassis->driveForward(6000, 6000);
+		}
+
 		// Set up a non-blocking 1000 ms delay
 		status = WAIT_FOR_TIME;
 		nextTime = nextTime + 100; // ensure no timer drift by incremeting the target
 		// After 1000 ms, come back to this state
 		nextStatus = Running;
-
-		this->chassis->loop(); // maybe this goes here? LT - (4/9/2019)
 
 		//t = lookup->torque(motor3->calcCur(), ((float) motor3->getVelocityDegreesPerSecond() / 360.0) * 60); //LT (4/3/2019) - calculate the torque
 		//Serial.println(String(t)); LT (4/3/2019) - Prints out the calclated torque
@@ -149,6 +153,9 @@ void StudentsRobot::updateStateMachine() {
 #endif
 
 		}
+
+		this->chassis->loop(); // maybe this goes here? LT - (4/9/2019)
+
 		break;
 	case WAIT_FOR_TIME:
 		// Check to see if enough time has elapsed
