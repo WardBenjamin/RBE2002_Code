@@ -35,9 +35,9 @@ StudentsRobot::StudentsRobot(PIDMotor * motor1, PIDMotor * motor2,
 	motor2->myPID.setpid(0.00015, 0, 0);
 	motor3->myPID.setpid(0.00015, 0, 0);
 
-	motor1->velocityPID.setpid(0.1, 0, 0);
-	motor2->velocityPID.setpid(0.1, 0, 0);
-	motor3->velocityPID.setpid(0.1, 0, 0);
+	motor1->velocityPID.setpid(0.05, 0.1, 0);
+	motor2->velocityPID.setpid(0.05, 0.1, 0);
+	motor3->velocityPID.setpid(0.05, 0.1, 0);
 	// compute ratios and bounding
 	double motorToWheel = 3;
 	motor1->setOutputBoundingValues(-255, //the minimum value that the output takes (Full reverse)
@@ -95,7 +95,7 @@ StudentsRobot::StudentsRobot(PIDMotor * motor1, PIDMotor * motor2,
 	pinMode(WII_CONTROLLER_DETECT, OUTPUT);
 
 
-	this->chassis = new DrivingChassis(this->motor1, this->motor2, 220, 450, IMU);
+	this->chassis = new DrivingChassis(this->motor1, this->motor2, 220, 25.4, IMU);
 }
 /**
  * Seperate from running the motor control,
@@ -129,7 +129,7 @@ void StudentsRobot::updateStateMachine() {
 	case Running:
 
 		if(this->chassis->state == STANDBY) {
-			this->chassis->driveForward(6000, 6000);
+			this->chassis->driveForward(600, 6000);
 		}
 
 		// Set up a non-blocking 1000 ms delay
@@ -158,6 +158,8 @@ void StudentsRobot::updateStateMachine() {
 
 		break;
 	case WAIT_FOR_TIME:
+
+		this->chassis->loop(); // maybe this goes here? LT - (4/9/2019)
 		// Check to see if enough time has elapsed
 		if (nextTime <= millis()) {
 			// if the time is up, move on to the next state

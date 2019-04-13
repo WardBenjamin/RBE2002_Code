@@ -121,7 +121,7 @@ float GetIMU::getGRAVITY_Z() {
 	return bufferINTERNAL[8];
 }
 float GetIMU::getEULER_azimuth() {
-	return e.x();
+	return bufferINTERNAL[11];
 }
 float GetIMU::getEULER_elevation() {
 	return bufferINTERNAL[10];

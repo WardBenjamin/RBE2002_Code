@@ -43,7 +43,9 @@ private:
 	float targetX = 0, targetY = 0, targetAngle = 9999, targetTime = 0, targetVelocity;
 	float startTime;
 
-	int lastLeftEncoder = 0, lastRightEncoder = 0, lastAngle = 0;;
+	int lastLeftEncoder = 0, lastRightEncoder = 0;
+
+	float lastAngle = 0;
 
 	RBEPID *xPID, *yPID, *anglePID;
 

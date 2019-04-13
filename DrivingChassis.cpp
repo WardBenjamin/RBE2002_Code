@@ -62,13 +62,13 @@ DrivingChassis::DrivingChassis(PIDMotor * left, PIDMotor * right,
 	this->mywheelRadiusMM = wheelRadiusMM;
 
 	this->xPID = new RBEPID();
-	this->xPID->setpid(0.5, 0, 0);
+	this->xPID->setpid(0.1, 0, 0);
 
 	this->yPID = new RBEPID();
-	this->yPID->setpid(0.5, 0, 0);
+	this->yPID->setpid(0.1, 0, 0);
 
 	this->anglePID = new RBEPID();
-	this->anglePID->setpid(0.5, 0, 0);
+	this->anglePID->setpid(0.1, 0, 0);
 
 	this->isYCorrectionMode = false;
 
@@ -159,25 +159,28 @@ void DrivingChassis::loop() {
 		float x = this->IMU->getXPosition();
 		float y = this->IMU->getYPosition();
 
-		float distanceLeft= myleft->getPosition() - lastLeftEncoder;
-		distanceLeft /= 3200;
-		distanceLeft *= (2 * PI * this->mywheelRadiusMM);
+		float distanceLeft = myleft->getPosition() - lastLeftEncoder;
+		distanceLeft /= (3200.0f);
+		distanceLeft *= (PI * 51.95f);
 
 		float distanceRight = myright->getPosition() - lastRightEncoder;
-		distanceRight *= (2 * PI * mywheelRadiusMM) / 3200;
+		distanceRight *= (PI * 52.5f) / (3200.0f);
 
-		float changeDistance = abs(distanceRight) + abs(distanceLeft) / 2;
+		float changeDistance = (abs(distanceRight) + abs(distanceLeft)) / 2;
 
-		float changeX = changeDistance * cos(lastAngle);
-		float changeY = changeDistance * sin(lastAngle);
+		float changeX = changeDistance * cos((lastAngle - targetAngle) * PI / 180);
+		float changeY = changeDistance * sin((lastAngle - targetAngle) * PI / 180);
+
+		lastLeftEncoder = myleft->getPosition();
+		lastRightEncoder = myright->getPosition();
+		lastAngle = IMU->getEULER_azimuth(); //update the last angle
 
 
-		if (timesLoop % 10 || timesLoop == 0) {
+		/*if (timesLoop % 10 || timesLoop == 0) {
 			Serial.println("-------[NEW LOOP]--------\n\n");
-			Serial.println("1. Determine the location of the robot debug");
+			Serial.println("1. Determine the location of the robot debug");*/
 
-			Serial.println("IMU: (" + String(IMU->getXPosition()) + ", " + String(IMU->getYPosition()) + ")");
-			Serial.println(
+			/*Serial.println(
 					"Target: (" + String(this->targetX) + ", "
 							+ String(this->targetY) + ", "
 							+ String(this->targetAngle) + " deg, " + String(this->targetTime)+ " ms)");
@@ -186,10 +189,13 @@ void DrivingChassis::loop() {
 			Serial.println("changeDistance: " + String(changeDistance));
 			Serial.println("changeX: " + String(changeX));
 			Serial.println("changeY: " + String(changeY));
+			Serial.println("lastAngle: " + String(lastAngle));
 			Serial.println("------\n\n");
-		}
+		}*/
 		IMU->setXPosition(x + changeX);
 		IMU->setYPosition(y + changeY);
+
+		Serial.println("IMU: (" + String(IMU->getXPosition()) + ", " + String(IMU->getYPosition()) + ")");
 
 		//2. figure out what corrections need to happen
 		float elapsed = myright->myFmap(millis() - startTime, 0, targetTime, 0,
@@ -203,14 +209,14 @@ void DrivingChassis::loop() {
 		float sineTargetY = sineTerm * targetY;
 		float sineAngle = sineTerm * targetAngle; // how is this to be used
 
-		if (timesLoop % 10 || timesLoop == 0) {
+		/*if (timesLoop % 10 || timesLoop == 0) {
 			Serial.println("2. Figure out what needs to happen");
 			Serial.println("elapsed: " + String(elapsed));
 			Serial.println("sineTerm: " + String(sineTerm));
 			Serial.println("elapsed_time: " + String(elapsed_time));
 
 			Serial.println("\n\n-----\n\n");
-		}
+		}*/
 
 		if(elapsed == 1 || sineTerm == 1) { //need to add back sineTem term
 			 state = DONE;
@@ -222,48 +228,61 @@ void DrivingChassis::loop() {
 		 }
 
 		//3. compute PID result
-		float xOut = xPID->calc(IMU->getXPosition(), sineTargetX);
-		float yOut = yPID->calc(IMU->getYPosition(), sineTargetY);
+		float xOut = xPID->calc(x + changeX, sineTargetX);
+		float yOut = yPID->calc(y + changeY, sineTargetY);
+		float angleOut = anglePID->calc(lastAngle, sineAngle); //remove angle toggle point by subtracting 150
 
-		if (timesLoop % 10 || timesLoop == 0) {
+		//if (timesLoop % 10 || timesLoop == 0) {
 			Serial.println("xOut: " + String(xOut));
 			Serial.println("yOut: " + String(yOut));
-		}
+			Serial.println("angleOut: " + String(angleOut));
+		//}*/
 
-		float angleOut = anglePID->calc(IMU->getEULER_azimuth(), sineAngle); //remove angle toggle point by subtracting 150
 
 		//4. choose y or theta correction term
-		float upperLimit = 3, switchLimit = 0.1;
+		float upperLimit = 3, switchLimit = 0.5;
 
-		float turningTerm = angleOut;
+		float turningTerm = -angleOut;
 
-		if (abs(targetY - changeY) > upperLimit) { //might be wrong
+		if (!isYCorrectionMode && abs(targetY - (changeY + y)) > upperLimit) { //might be wrong
+
+			Serial.println("Correction mode entered!");
 			isYCorrectionMode = true;
-			turningTerm = yOut;
-		} else if (isYCorrectionMode && abs(targetY - changeY) < switchLimit) {
+		} else if (isYCorrectionMode && abs(targetY - (changeY + y)) < switchLimit) {
 			isYCorrectionMode = false;
+		}
+
+		if(isYCorrectionMode) {
+			turningTerm = yOut;
 		}
 
 		float powerTerm = xOut;
 
-		float leftPower = -powerTerm + turningTerm;
-		float rightPower = -turningTerm + powerTerm;
+		float leftPower = powerTerm + turningTerm;
+		float rightPower = powerTerm - turningTerm;
 
-		if (timesLoop % 10 || timesLoop == 0) {
+
+		float max = fmax(abs(leftPower), abs(rightPower));
+
+		if(max > 1) {
+			leftPower /= max;
+			rightPower /= max;
+		}
+
+		/*if (timesLoop % 10 || timesLoop == 0) {
 
 			Serial.println("Left Motor Power: " + String(leftPower));
 			Serial.println("Right Motor Power: " + String(rightPower));
-		}
+		}*/
 
-		myleft->setVelocityDegreesPerSecond(leftPower * 400);
+		myleft->setVelocityDegreesPerSecond(leftPower * -400);
 		myright->setVelocityDegreesPerSecond(rightPower * 400);
 
-		timesLoop++;
+		Serial.println("Left Velocity: " + String(leftPower * -400));
+		Serial.println("Right Velocity: " + String(rightPower * 400));
+		Serial.println();
 
-
-		lastLeftEncoder = myleft->getPosition();
-		lastRightEncoder = myright->getPosition();
-		lastAngle = IMU->getEULER_azimuth(); //update the last angle
+		//timesLoop++;
 	}
 }
 
