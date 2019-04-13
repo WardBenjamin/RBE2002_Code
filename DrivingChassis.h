@@ -14,9 +14,7 @@
 #include <math.h>
 
 enum ChassisState {
-	DRIVING,
-	DONE,
-	STANDBY
+	DRIVING, DONE, STANDBY
 };
 
 /**
@@ -40,8 +38,9 @@ private:
 	float mywheelTrackMM;
 	float mywheelRadiusMM;
 
-	float targetX = 0, targetY = 0, targetAngle = 9999, targetTime = 0, targetVelocity;
-	float startTime;
+	float targetX = 0, targetY = 0, targetTime = 0,
+			targetVelocity;
+	float startTime, adjustAngle;
 
 	int lastLeftEncoder = 0, lastRightEncoder = 0;
 
@@ -79,6 +78,8 @@ private:
 	 * @return is the linear distance the wheel needs to travel given the this CHassis's wheel track
 	 */
 	float chassisRotationToWheelDistance(float angle);
+
+	void setAngleAdjustment(float angle);
 public:
 	ChassisState state;
 
@@ -93,7 +94,7 @@ public:
 	 * @param wheelRadiusMM is the measurment in milimeters of the radius of the wheels
 	 */
 	DrivingChassis(PIDMotor * left, PIDMotor * right, float wheelTrackMM,
-			float wheelRadiusMM,GetIMU * imu);
+			float wheelRadiusMM, GetIMU * imu);
 
 	/**
 	 * Start a drive forward action
@@ -132,6 +133,10 @@ public:
 	bool isChassisDoneDriving();
 
 	void loop();
+
+	float getAngle();
+
+	float trapezoid();
 
 };
 

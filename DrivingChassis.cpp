@@ -108,6 +108,9 @@ void DrivingChassis::driveForward(float mmDistanceFromCurrent, int msDuration) {
 	this->myleft->setVelocityDegreesPerSecond(targetVelocity);
 	this->myright->setVelocityDegreesPerSecond(targetVelocity);
 
+
+	setAngleAdjustment(180);
+
 }
 
 /**
@@ -149,110 +152,88 @@ bool DrivingChassis::isChassisDoneDriving() {
 void DrivingChassis::loop() {
 
 	if (state == DRIVING) {
-
-		if (targetAngle == 9999) {
-			targetAngle = IMU->getEULER_azimuth();
-			lastAngle = targetAngle;
-		}
-
 		//step 1: determine the location
 		float x = this->IMU->getXPosition();
 		float y = this->IMU->getYPosition();
 
-		float distanceLeft = myleft->getPosition() - lastLeftEncoder;
-		distanceLeft /= (3200.0f);
-		distanceLeft *= (PI * 51.95f);
-
-		float distanceRight = myright->getPosition() - lastRightEncoder;
-		distanceRight *= (PI * 52.5f) / (3200.0f);
+		float distanceLeft = myleft->getAngleDegrees() - lastLeftEncoder;
+		float distanceRight = myright->getAngleDegrees() - lastRightEncoder;
 
 		float changeDistance = (abs(distanceRight) + abs(distanceLeft)) / 2;
+		changeDistance *= (600.0 / 1180.0);
 
-		float changeX = changeDistance * cos((lastAngle - targetAngle) * PI / 180);
-		float changeY = changeDistance * sin((lastAngle - targetAngle) * PI / 180);
+		float changeX = changeDistance
+				* cos(radians(lastAngle));
+		float changeY = changeDistance
+				* sin(radians(lastAngle));
 
-		lastLeftEncoder = myleft->getPosition();
-		lastRightEncoder = myright->getPosition();
-		lastAngle = IMU->getEULER_azimuth(); //update the last angle
+		lastLeftEncoder = myleft->getAngleDegrees();
+		lastRightEncoder = myright->getAngleDegrees();
+		lastAngle = getAngle(); //update the last angle
 
-
-		/*if (timesLoop % 10 || timesLoop == 0) {
-			Serial.println("-------[NEW LOOP]--------\n\n");
-			Serial.println("1. Determine the location of the robot debug");*/
-
-			/*Serial.println(
-					"Target: (" + String(this->targetX) + ", "
-							+ String(this->targetY) + ", "
-							+ String(this->targetAngle) + " deg, " + String(this->targetTime)+ " ms)");
-			Serial.println("distanceLeft: " + String(distanceLeft));
-			Serial.println("distanceRight: " + String(distanceRight));
-			Serial.println("changeDistance: " + String(changeDistance));
-			Serial.println("changeX: " + String(changeX));
-			Serial.println("changeY: " + String(changeY));
-			Serial.println("lastAngle: " + String(lastAngle));
-			Serial.println("------\n\n");
-		}*/
 		IMU->setXPosition(x + changeX);
 		IMU->setYPosition(y + changeY);
 
-		Serial.println("IMU: (" + String(IMU->getXPosition()) + ", " + String(IMU->getYPosition()) + ")");
+		Serial.println(
+				"IMU: (" + String(IMU->getXPosition()) + ", "
+						+ String(IMU->getYPosition()) + ")");
 
 		//2. figure out what corrections need to happen
 		float elapsed = myright->myFmap(millis() - startTime, 0, targetTime, 0,
 				1);
 
-		 float elapsed_time = millis() - startTime;
+		float elapsed_time = millis() - startTime;
 
-		float sineTerm = 1 - ((cos(-PI * (elapsed_time / targetTime)) / 2) + 0.5); //this is wrong
+		float sineTerm = 1
+				- ((cos(-PI * (elapsed_time / targetTime)) / 2) + 0.5); //this is wrong
 
 		float sineTargetX = sineTerm * targetX;
 		float sineTargetY = sineTerm * targetY;
-		float sineAngle = sineTerm * targetAngle; // how is this to be used
 
 		/*if (timesLoop % 10 || timesLoop == 0) {
-			Serial.println("2. Figure out what needs to happen");
-			Serial.println("elapsed: " + String(elapsed));
-			Serial.println("sineTerm: " + String(sineTerm));
-			Serial.println("elapsed_time: " + String(elapsed_time));
+		 Serial.println("2. Figure out what needs to happen");
+		 Serial.println("elapsed: " + String(elapsed));
+		 Serial.println("sineTerm: " + String(sineTerm));
+		 Serial.println("elapsed_time: " + String(elapsed_time));
 
-			Serial.println("\n\n-----\n\n");
-		}*/
+		 Serial.println("\n\n-----\n\n");
+		 }*/
 
-		if(elapsed == 1 || sineTerm == 1) { //need to add back sineTem term
-			 state = DONE;
+		if (elapsed == 1 || sineTerm == 1) { //need to add back sineTem term
+			state = DONE;
 
-			 myleft->stop();
-			 myright->stop();
+			myleft->stop();
+			myright->stop();
 
-			 return;
-		 }
+			return;
+		}
 
 		//3. compute PID result
-		float xOut = xPID->calc(x + changeX, sineTargetX);
-		float yOut = yPID->calc(y + changeY, sineTargetY);
-		float angleOut = anglePID->calc(lastAngle, sineAngle); //remove angle toggle point by subtracting 150
+		float xOut = xPID->calc(sineTargetX, x + changeX);
+		float yOut = yPID->calc(sineTargetY, y + changeY);
+		float angleOut = anglePID->calc(180, getAngle()); //remove angle toggle point by subtracting 150
 
 		//if (timesLoop % 10 || timesLoop == 0) {
-			Serial.println("xOut: " + String(xOut));
-			Serial.println("yOut: " + String(yOut));
-			Serial.println("angleOut: " + String(angleOut));
+		Serial.println("xOut: " + String(xOut));
+		Serial.println("yOut: " + String(yOut));
+		Serial.println("angleOut: " + String(angleOut));
 		//}*/
-
 
 		//4. choose y or theta correction term
 		float upperLimit = 3, switchLimit = 0.5;
 
-		float turningTerm = -angleOut;
+		float turningTerm = angleOut;
 
 		if (!isYCorrectionMode && abs(targetY - (changeY + y)) > upperLimit) { //might be wrong
 
 			Serial.println("Correction mode entered!");
 			isYCorrectionMode = true;
-		} else if (isYCorrectionMode && abs(targetY - (changeY + y)) < switchLimit) {
+		} else if (isYCorrectionMode
+				&& abs(targetY - (changeY + y)) < switchLimit) {
 			isYCorrectionMode = false;
 		}
 
-		if(isYCorrectionMode) {
+		if (isYCorrectionMode) {
 			turningTerm = yOut;
 		}
 
@@ -261,20 +242,12 @@ void DrivingChassis::loop() {
 		float leftPower = powerTerm + turningTerm;
 		float rightPower = powerTerm - turningTerm;
 
-
 		float max = fmax(abs(leftPower), abs(rightPower));
 
-		if(max > 1) {
+		if (max > 1) {
 			leftPower /= max;
 			rightPower /= max;
 		}
-
-		/*if (timesLoop % 10 || timesLoop == 0) {
-
-			Serial.println("Left Motor Power: " + String(leftPower));
-			Serial.println("Right Motor Power: " + String(rightPower));
-		}*/
-
 		myleft->setVelocityDegreesPerSecond(leftPower * -400);
 		myright->setVelocityDegreesPerSecond(rightPower * 400);
 
@@ -284,5 +257,18 @@ void DrivingChassis::loop() {
 
 		//timesLoop++;
 	}
+}
+float DrivingChassis::getAngle() {
+	float angle = IMU->getEULER_azimuth() - adjustAngle;
+	if (angle > 360)
+		return angle - 360;
+	if (angle < 0)
+		return angle + 360;
+	return angle;
+}
+
+void DrivingChassis::setAngleAdjustment(float angle) {
+	adjustAngle = angle - IMU->getEULER_azimuth();
+	lastAngle = getAngle();
 }
 
