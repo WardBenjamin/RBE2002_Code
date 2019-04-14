@@ -48,7 +48,7 @@ private:
 
 	RBEPID *xPID, *yPID, *anglePID;
 
-	bool isYCorrectionMode, trapzoid_debug = true, joystick_debug = true, showIMU = true;
+	bool isYCorrectionMode, trapzoid_debug = true, joystick_debug = true, showIMU = true, isTurning;
 
 	float targetAngle;
 

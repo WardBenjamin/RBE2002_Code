@@ -65,10 +65,11 @@ DrivingChassis::DrivingChassis(PIDMotor * left, PIDMotor * right,
 	this->xPID->setpid(0.05, 0, 0);
 
 	this->yPID = new RBEPID();
-	this->yPID->setpid(0.01, 0, 0);
+	this->yPID->setpid(0.01, 0, 0.01);
 
 	this->anglePID = new RBEPID();
-	this->anglePID->setpid(0.05, 0.001, 0.001);
+	this->anglePID->setpid(0.025, 0, 0);
+	//this->anglePID->setpid(0, 0, 0);
 
 	this->isYCorrectionMode = false;
 
@@ -104,9 +105,6 @@ void DrivingChassis::driveForward(float mmDistanceFromCurrent, int msDuration) {
 			/ (msDuration / 1000);
 
 	startTime = millis();
-
-	this->myleft->setVelocityDegreesPerSecond(targetVelocity);
-	this->myright->setVelocityDegreesPerSecond(targetVelocity);
 
 
 	setAngleAdjustment(180);
@@ -200,6 +198,8 @@ void DrivingChassis::loop() {
 		if (elapsed == 1 || sineTerm == 1) { //need to add back sineTem term
 			state = DONE;
 
+			Serial.println("DONE!");
+
 			myleft->stop();
 			myright->stop();
 
@@ -215,22 +215,22 @@ void DrivingChassis::loop() {
 		float yOut = yPID->calc(sineTargetY, y);
 		Serial.println("\tyPID->calc(" + String(sineTargetY) + ", " + String(y) + ") = " + String(yOut));
 
-		float angleOut = anglePID->calc(180, getAngle()); //remove angle toggle point by subtracting 150
-		Serial.println("\tanglePID->calc(" + String(180) + ", " + String(getAngle()) + ") = " + String(angleOut));
+		float angleOut = anglePID->calc(targetAngle, getAngle()); //remove angle toggle point by subtracting 150
+		Serial.println("\tanglePID->calc(" + String(targetAngle) + ", " + String(getAngle()) + ") = " + String(angleOut));
 
 		Serial.println();
 
 		//4. choose y or theta correction term
-		float upperLimit = 3, switchLimit = 0.5;
+		float upperLimit = 1, switchLimit = 0.1;
 
 		float turningTerm = angleOut;
 
-		if (!isYCorrectionMode && abs(targetY - (y)) > upperLimit) { //might be wrong
+		if (!isYCorrectionMode && abs(abs(sineTargetY) - abs(y))> upperLimit) { //might be wrong
 
 			Serial.println("Correction mode entered!");
 			isYCorrectionMode = true;
 		} else if (isYCorrectionMode
-				&& abs(targetY - (y)) < switchLimit) {
+				&& abs(abs(sineTargetY) - abs(y)) < switchLimit) {
 			isYCorrectionMode = false;
 		}
 
@@ -243,8 +243,12 @@ void DrivingChassis::loop() {
 		float* powers = joystick_algorithm(powerTerm, turningTerm);
 
 
-		myleft->setVelocityDegreesPerSecond(powers[0] * 400);
-		myright->setVelocityDegreesPerSecond(powers[1] * -400);
+		myleft->setVelocityDegreesPerSecond(powers[0] * 300 * 0.75);
+		myright->setVelocityDegreesPerSecond(powers[1] * -300);
+
+		if(isTurning) {
+			myright->setVelocityDegreesPerSecond(powers[1] * -300 * 0.85);
+		}
 
 		if(isYCorrectionMode) {
 			Serial.println("YCorrectionMode = true");
@@ -267,7 +271,7 @@ void DrivingChassis::setAngleAdjustment(float angle) {
 	adjustAngle = angle - IMU->getEULER_azimuth();
 	lastAngle = getAngle();
 
-	targetAngle = angle;
+	targetAngle = 180 + angle;
 }
 
 float DrivingChassis::getDistanceFromTicks(float ticks) {
