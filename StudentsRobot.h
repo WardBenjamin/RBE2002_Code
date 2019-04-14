@@ -70,6 +70,9 @@ private:
 
 	DrivingChassis *chassis; // LT - (4/9/2019)
 public:
+
+	DrivingChassis* getChassis() const {return chassis;}
+
 	/**
 	 * Constructor for StudentsRobot
 	 *

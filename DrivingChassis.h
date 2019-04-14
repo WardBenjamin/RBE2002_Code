@@ -48,7 +48,9 @@ private:
 
 	RBEPID *xPID, *yPID, *anglePID;
 
-	bool isYCorrectionMode;
+	bool isYCorrectionMode, trapzoid_debug = true, joystick_debug = true, showIMU = true;
+
+	float targetAngle;
 
 	long timesLoop = 0;
 	/**
@@ -135,8 +137,24 @@ public:
 	void loop();
 
 	float getAngle();
+	float getDistanceFromTicks(float);
 
-	float trapezoid();
+	float* trapzoid_approx(float, float);
+
+	float* joystick_algorithm(float, float);
+
+	void update(float, float);
+
+
+	void setTargetX (float x){
+		this->targetX = x;
+	}
+	void setTargetY(float y){
+		this->targetY = y;
+	}
+	void setLastAngle(float angle){
+		lastAngle = angle;
+	}
 
 };
 

@@ -62,13 +62,13 @@ DrivingChassis::DrivingChassis(PIDMotor * left, PIDMotor * right,
 	this->mywheelRadiusMM = wheelRadiusMM;
 
 	this->xPID = new RBEPID();
-	this->xPID->setpid(0.1, 0, 0);
+	this->xPID->setpid(0.05, 0, 0);
 
 	this->yPID = new RBEPID();
-	this->yPID->setpid(0.1, 0, 0);
+	this->yPID->setpid(0.01, 0, 0);
 
 	this->anglePID = new RBEPID();
-	this->anglePID->setpid(0.1, 0, 0);
+	this->anglePID->setpid(0.05, 0.001, 0.001);
 
 	this->isYCorrectionMode = false;
 
@@ -129,6 +129,24 @@ void DrivingChassis::driveForward(float mmDistanceFromCurrent, int msDuration) {
  * 		 allow for relative moves. Otherwise the motor is always in ABSOLUTE mode
  */
 void DrivingChassis::turnDegrees(float degreesToRotateBase, int msDuration) {
+	setAngleAdjustment(180 + degreesToRotateBase);
+
+	this->targetTime = msDuration;
+
+	targetX = 0;
+	targetY = 0;
+
+	IMU->setXPosition(0);
+	IMU->setYPosition(0);
+	IMU->setZPosition(0);
+
+	this->myleft->overrideCurrentPosition(0);
+	this->myright->overrideCurrentPosition(0);
+
+	state = DRIVING;
+
+	startTime = millis();
+
 
 }
 
@@ -152,31 +170,19 @@ bool DrivingChassis::isChassisDoneDriving() {
 void DrivingChassis::loop() {
 
 	if (state == DRIVING) {
+
+		Serial.println("\n\n\n<---loop(DRIVING)--->");
+		Serial.println("heading: {" + String(targetX) + "," + String(targetY) + ", " + String(lastAngle) + "}\n");
 		//step 1: determine the location
 		float x = this->IMU->getXPosition();
 		float y = this->IMU->getYPosition();
 
-		float distanceLeft = myleft->getAngleDegrees() - lastLeftEncoder;
-		float distanceRight = myright->getAngleDegrees() - lastRightEncoder;
+		float *change = this->trapzoid_approx(myleft->getPosition(), myright->getPosition());
 
-		float changeDistance = (abs(distanceRight) + abs(distanceLeft)) / 2;
-		changeDistance *= (600.0 / 1180.0);
+		x += change[0];
+		y += change[1];
 
-		float changeX = changeDistance
-				* cos(radians(lastAngle));
-		float changeY = changeDistance
-				* sin(radians(lastAngle));
-
-		lastLeftEncoder = myleft->getAngleDegrees();
-		lastRightEncoder = myright->getAngleDegrees();
-		lastAngle = getAngle(); //update the last angle
-
-		IMU->setXPosition(x + changeX);
-		IMU->setYPosition(y + changeY);
-
-		Serial.println(
-				"IMU: (" + String(IMU->getXPosition()) + ", "
-						+ String(IMU->getYPosition()) + ")");
+		update(x, y);
 
 		//2. figure out what corrections need to happen
 		float elapsed = myright->myFmap(millis() - startTime, 0, targetTime, 0,
@@ -189,15 +195,7 @@ void DrivingChassis::loop() {
 
 		float sineTargetX = sineTerm * targetX;
 		float sineTargetY = sineTerm * targetY;
-
-		/*if (timesLoop % 10 || timesLoop == 0) {
-		 Serial.println("2. Figure out what needs to happen");
-		 Serial.println("elapsed: " + String(elapsed));
-		 Serial.println("sineTerm: " + String(sineTerm));
-		 Serial.println("elapsed_time: " + String(elapsed_time));
-
-		 Serial.println("\n\n-----\n\n");
-		 }*/
+		//float sineTargetAngle = sineTerm * 180
 
 		if (elapsed == 1 || sineTerm == 1) { //need to add back sineTem term
 			state = DONE;
@@ -208,58 +206,56 @@ void DrivingChassis::loop() {
 			return;
 		}
 
-		//3. compute PID result
-		float xOut = xPID->calc(sineTargetX, x + changeX);
-		float yOut = yPID->calc(sineTargetY, y + changeY);
-		float angleOut = anglePID->calc(180, getAngle()); //remove angle toggle point by subtracting 150
 
-		//if (timesLoop % 10 || timesLoop == 0) {
-		Serial.println("xOut: " + String(xOut));
-		Serial.println("yOut: " + String(yOut));
-		Serial.println("angleOut: " + String(angleOut));
-		//}*/
+		Serial.println("calculate_PID():");
+		//3. compute PID result
+		float xOut = xPID->calc(sineTargetX, x);
+		Serial.println("\txPID->calc(" + String(sineTargetX) + ", " + String(x) + ") = " + String(xOut));
+
+		float yOut = yPID->calc(sineTargetY, y);
+		Serial.println("\tyPID->calc(" + String(sineTargetY) + ", " + String(y) + ") = " + String(yOut));
+
+		float angleOut = anglePID->calc(180, getAngle()); //remove angle toggle point by subtracting 150
+		Serial.println("\tanglePID->calc(" + String(180) + ", " + String(getAngle()) + ") = " + String(angleOut));
+
+		Serial.println();
 
 		//4. choose y or theta correction term
 		float upperLimit = 3, switchLimit = 0.5;
 
 		float turningTerm = angleOut;
 
-		if (!isYCorrectionMode && abs(targetY - (changeY + y)) > upperLimit) { //might be wrong
+		if (!isYCorrectionMode && abs(targetY - (y)) > upperLimit) { //might be wrong
 
 			Serial.println("Correction mode entered!");
 			isYCorrectionMode = true;
 		} else if (isYCorrectionMode
-				&& abs(targetY - (changeY + y)) < switchLimit) {
+				&& abs(targetY - (y)) < switchLimit) {
 			isYCorrectionMode = false;
 		}
 
 		if (isYCorrectionMode) {
-			turningTerm = yOut;
+			turningTerm = -yOut;
 		}
 
 		float powerTerm = xOut;
 
-		float leftPower = powerTerm + turningTerm;
-		float rightPower = powerTerm - turningTerm;
+		float* powers = joystick_algorithm(powerTerm, turningTerm);
 
-		float max = fmax(abs(leftPower), abs(rightPower));
 
-		if (max > 1) {
-			leftPower /= max;
-			rightPower /= max;
+		myleft->setVelocityDegreesPerSecond(powers[0] * 400);
+		myright->setVelocityDegreesPerSecond(powers[1] * -400);
+
+		if(isYCorrectionMode) {
+			Serial.println("YCorrectionMode = true");
+		} else {
+			Serial.println("YCorrectionMode = false");
 		}
-		myleft->setVelocityDegreesPerSecond(leftPower * -400);
-		myright->setVelocityDegreesPerSecond(rightPower * 400);
 
-		Serial.println("Left Velocity: " + String(leftPower * -400));
-		Serial.println("Right Velocity: " + String(rightPower * 400));
-		Serial.println();
-
-		//timesLoop++;
 	}
 }
 float DrivingChassis::getAngle() {
-	float angle = IMU->getEULER_azimuth() - adjustAngle;
+	float angle = IMU->getEULER_azimuth() + adjustAngle;
 	if (angle > 360)
 		return angle - 360;
 	if (angle < 0)
@@ -270,5 +266,74 @@ float DrivingChassis::getAngle() {
 void DrivingChassis::setAngleAdjustment(float angle) {
 	adjustAngle = angle - IMU->getEULER_azimuth();
 	lastAngle = getAngle();
+
+	targetAngle = angle;
 }
 
+float DrivingChassis::getDistanceFromTicks(float ticks) {
+	return (ticks / 3200.0) * (2 * PI * this->mywheelRadiusMM);
+}
+
+float* DrivingChassis::trapzoid_approx(float leftMotorTicks, float rightMotorTicks) {
+		float distanceLeft = leftMotorTicks - lastLeftEncoder;
+		float distanceRight = rightMotorTicks - lastRightEncoder;
+
+		float changeDistance = (abs(distanceRight) + abs(distanceLeft)) / 2;
+		changeDistance = getDistanceFromTicks(changeDistance);
+
+		float *change = new float[2];
+
+		change[0] = changeDistance
+				* cos(radians(180 - getAngle()));
+		change[1] = changeDistance
+				* sin(radians(180 - getAngle()));
+
+
+		if(trapzoid_debug) {
+			Serial.println("trapoid_approx(" + String(leftMotorTicks) + ", " + String(rightMotorTicks) + "):");
+			Serial.println("\tlastAngle: " + String(lastAngle));
+			Serial.println("\tlastEncoderValues: {" + String(lastLeftEncoder) + ", " + String(lastRightEncoder) + "}");
+			Serial.println("\tchangeDistance:" + String(changeDistance));
+			Serial.println("\tchange: {" + String(change[0]) + ", " + String(change[0]) + "}");
+			Serial.println();
+		}
+
+		return change;
+}
+float* DrivingChassis::joystick_algorithm(float powerTerm, float turningTerm) {
+	float *motorPowers = new float[2];
+	motorPowers[0] = powerTerm + turningTerm;
+	motorPowers[1] = powerTerm - turningTerm;
+
+
+	float max = fmax(abs(motorPowers[0]), abs(motorPowers[1]));
+
+	if (max > 1) {
+		motorPowers[0] /= max;
+		motorPowers[1] /= max;
+	}
+
+
+	if(joystick_debug) {
+		Serial.println("joystick_algorithm(" + String(powerTerm) + ", " + String(turningTerm) + "):");
+		Serial.println("\tmotorPowers: {" + String(motorPowers[0]) + ", " + String(motorPowers[1]) + "}");
+		Serial.println();
+	}
+
+	return motorPowers;
+}
+
+void DrivingChassis::update(float x, float y) {
+	IMU->setXPosition(x);
+	IMU->setYPosition(y);
+
+	lastLeftEncoder = myleft->getPosition();
+	lastRightEncoder = myright->getPosition();
+	lastAngle = getAngle(); //update the last angle
+
+	if(showIMU) {
+		Serial.println(
+						"IMU: {" + String(IMU->getXPosition()) + ", "
+								+ String(IMU->getYPosition()) + "}\n");
+	}
+}

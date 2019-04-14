@@ -1,3 +1,5 @@
+#line 2 "RBE2002Code02.ino"
+
 /**@file template.ino */
 #include <ESP32Servo.h>
 #include <ESP32Encoder.h>
@@ -18,9 +20,9 @@
 RobotControlCenter * controlCenter;
 void setup() {
 	controlCenter = new RobotControlCenter(new String(TEAM_NAME));
+
 }
 
 void loop() {
 	controlCenter->loop(); // run the state machine pulse
 }
-
