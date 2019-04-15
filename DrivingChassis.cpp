@@ -69,7 +69,6 @@ DrivingChassis::DrivingChassis(PIDMotor * left, PIDMotor * right,
 
 	this->anglePID = new RBEPID();
 	this->anglePID->setpid(0.025, 0, 0);
-	//this->anglePID->setpid(0, 0, 0);
 
 	this->isYCorrectionMode = false;
 
@@ -106,9 +105,13 @@ void DrivingChassis::driveForward(float mmDistanceFromCurrent, int msDuration) {
 
 	startTime = millis();
 
+	isTurning = false;
 
 	setAngleAdjustment(180);
 
+	this->xPID->setpid(0.05, 0, 0);
+	this->yPID->setpid(0.01, 0, 0.01);
+	this->anglePID->setpid(0.025, 0, 0);
 }
 
 /**
@@ -127,7 +130,7 @@ void DrivingChassis::driveForward(float mmDistanceFromCurrent, int msDuration) {
  * 		 allow for relative moves. Otherwise the motor is always in ABSOLUTE mode
  */
 void DrivingChassis::turnDegrees(float degreesToRotateBase, int msDuration) {
-	setAngleAdjustment(180 + degreesToRotateBase);
+	setAngleAdjustment(180);
 
 	this->targetTime = msDuration;
 
@@ -143,7 +146,13 @@ void DrivingChassis::turnDegrees(float degreesToRotateBase, int msDuration) {
 
 	state = DRIVING;
 
+	this->targetAngle = 180 + degreesToRotateBase;
+
 	startTime = millis();
+
+	isTurning = true;
+
+	anglePID->setpid(1, 0, 0.2);
 
 
 }
@@ -225,7 +234,7 @@ void DrivingChassis::loop() {
 
 		float turningTerm = angleOut;
 
-		if (!isYCorrectionMode && abs(abs(sineTargetY) - abs(y))> upperLimit) { //might be wrong
+		if (!isYCorrectionMode && abs(abs(sineTargetY) - abs(y))> upperLimit && !isTurning) { //might be wrong
 
 			Serial.println("Correction mode entered!");
 			isYCorrectionMode = true;
@@ -240,6 +249,10 @@ void DrivingChassis::loop() {
 
 		float powerTerm = xOut;
 
+		if(isTurning) {
+			powerTerm *= 0;
+		}
+
 		float* powers = joystick_algorithm(powerTerm, turningTerm);
 
 
@@ -247,7 +260,7 @@ void DrivingChassis::loop() {
 		myright->setVelocityDegreesPerSecond(powers[1] * -300);
 
 		if(isTurning) {
-			myright->setVelocityDegreesPerSecond(powers[1] * -300 * 0.85);
+			myright->setVelocityDegreesPerSecond(powers[1] * -300 * 0.8);
 		}
 
 		if(isYCorrectionMode) {
@@ -271,7 +284,7 @@ void DrivingChassis::setAngleAdjustment(float angle) {
 	adjustAngle = angle - IMU->getEULER_azimuth();
 	lastAngle = getAngle();
 
-	targetAngle = 180 + angle;
+	//targetAngle = angle;
 }
 
 float DrivingChassis::getDistanceFromTicks(float ticks) {
