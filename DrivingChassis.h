@@ -52,7 +52,7 @@ private:
 
 	float targetAngle;
 
-	long timesLoop = 0;
+	int steps = 0;
 	/**
 	 * Compute a delta in wheel angle to traverse a specific distance
 	 *

@@ -68,7 +68,7 @@ DrivingChassis::DrivingChassis(PIDMotor * left, PIDMotor * right,
 	this->yPID->setpid(0.01, 0, 0.01);
 
 	this->anglePID = new RBEPID();
-	this->anglePID->setpid(0.025, 0, 0);
+	this->anglePID->setpid(0.05, 0, 0.1);
 
 	this->isYCorrectionMode = false;
 
@@ -100,18 +100,30 @@ void DrivingChassis::driveForward(float mmDistanceFromCurrent, int msDuration) {
 
 	state = DRIVING;
 
-	targetVelocity = this->distanceToWheelAngle(mmDistanceFromCurrent)
-			/ (msDuration / 1000);
-
 	startTime = millis();
 
 	isTurning = false;
 
 	setAngleAdjustment(180);
 
+	this->targetAngle = 180;
+
+
+	/*this->xPID->setpid(0.05, 0, 0);
+	this->yPID->setpid(0.01, 0, 0.01);
+	this->anglePID->setpid(0.07, 0, 0.01);*/
+
 	this->xPID->setpid(0.05, 0, 0);
 	this->yPID->setpid(0.01, 0, 0.01);
-	this->anglePID->setpid(0.025, 0, 0);
+	this->anglePID->setpid(0.15, 0, 0.01);
+
+	this->xPID->clearIntegralBuffer();
+	this->yPID->clearIntegralBuffer();
+	this->anglePID->clearIntegralBuffer();
+
+	lastLeftEncoder = 0;
+	lastRightEncoder = 0;
+	lastAngle = 0;
 }
 
 /**
@@ -152,8 +164,16 @@ void DrivingChassis::turnDegrees(float degreesToRotateBase, int msDuration) {
 
 	isTurning = true;
 
-	anglePID->setpid(1, 0, 0.2);
+	anglePID->setpid(0.1, 0, 0.2);
 
+	this->xPID->clearIntegralBuffer();
+	this->yPID->clearIntegralBuffer();
+	this->anglePID->clearIntegralBuffer();
+
+
+	lastLeftEncoder = 0;
+	lastRightEncoder = 0;
+	lastAngle = 0;
 
 }
 
@@ -202,7 +222,8 @@ void DrivingChassis::loop() {
 
 		float sineTargetX = sineTerm * targetX;
 		float sineTargetY = sineTerm * targetY;
-		//float sineTargetAngle = sineTerm * 180
+
+		float sineTargetAngle = sineTerm * targetAngle;
 
 		if (elapsed == 1 || sineTerm == 1) { //need to add back sineTem term
 			state = DONE;
@@ -227,6 +248,10 @@ void DrivingChassis::loop() {
 		float angleOut = anglePID->calc(targetAngle, getAngle()); //remove angle toggle point by subtracting 150
 		Serial.println("\tanglePID->calc(" + String(targetAngle) + ", " + String(getAngle()) + ") = " + String(angleOut));
 
+		if(isTurning) {
+			angleOut = anglePID->calc(targetAngle, getAngle());
+		}
+
 		Serial.println();
 
 		//4. choose y or theta correction term
@@ -234,7 +259,7 @@ void DrivingChassis::loop() {
 
 		float turningTerm = angleOut;
 
-		if (!isYCorrectionMode && abs(abs(sineTargetY) - abs(y))> upperLimit && !isTurning) { //might be wrong
+		if (!isYCorrectionMode && abs(abs(sineTargetY) - abs(y)) > upperLimit && !isTurning) { //might be wrong
 
 			Serial.println("Correction mode entered!");
 			isYCorrectionMode = true;
@@ -255,12 +280,12 @@ void DrivingChassis::loop() {
 
 		float* powers = joystick_algorithm(powerTerm, turningTerm);
 
-
-		myleft->setVelocityDegreesPerSecond(powers[0] * 300 * 0.75);
-		myright->setVelocityDegreesPerSecond(powers[1] * -300);
+		myleft->setVelocityDegreesPerSecond(powers[0] * 225);
+		myright->setVelocityDegreesPerSecond(powers[1] * -225);
 
 		if(isTurning) {
-			myright->setVelocityDegreesPerSecond(powers[1] * -300 * 0.8);
+			myright->setVelocityDegreesPerSecond(powers[0] * 300);
+			myleft->setVelocityDegreesPerSecond(powers[1] * -300);
 		}
 
 		if(isYCorrectionMode) {
@@ -269,6 +294,15 @@ void DrivingChassis::loop() {
 			Serial.println("YCorrectionMode = false");
 		}
 
+	}
+	if(state == DONE) {
+		if(steps == 0) {
+			this->turnDegrees(90, 18000);
+			steps++;
+		} else if(steps == 1) {
+			this->driveForward(150, 9000);
+			steps++;
+		}
 	}
 }
 float DrivingChassis::getAngle() {

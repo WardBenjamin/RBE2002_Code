@@ -35,8 +35,8 @@ StudentsRobot::StudentsRobot(PIDMotor * motor1, PIDMotor * motor2,
 	motor2->myPID.setpid(0.00015, 0, 0);
 	motor3->myPID.setpid(0.00015, 0, 0);
 
-	motor1->velocityPID.setpid(0.05, 0.1, 0);
-	motor2->velocityPID.setpid(0.05, 0.1, 0);
+	motor1->velocityPID.setpid(0.01, 0, 0);
+	motor2->velocityPID.setpid(0.01, 0, 0);
 	motor3->velocityPID.setpid(0.05, 0.1, 0);
 	// compute ratios and bounding
 	double motorToWheel = 3;
@@ -129,13 +129,12 @@ void StudentsRobot::updateStateMachine() {
 	case Running:
 
 		if(this->chassis->state == STANDBY) {
-			//this->chassis->driveForward(550, 10000);
-			this->chassis->turnDegrees(90, 10000);
+			this->chassis->driveForward(550, 40000);
+			//this->chassis->turnDegrees(90, 10000);
 		}
 
 		// Set up a non-blocking 1000 ms delay
-		status = WAIT_FOR_TIME;
-		nextTime = nextTime + 100; // ensure no timer drift by incremeting the target
+		status = WAIT_FOR_TIME;//		nextTime = nextTime + 100; // ensure no timer drift by incremeting the target
 		// After 1000 ms, come back to this state
 		nextStatus = Running;
 
