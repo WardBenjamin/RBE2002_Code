@@ -129,8 +129,9 @@ void StudentsRobot::updateStateMachine() {
 	case Running:
 
 		if(this->chassis->state == STANDBY) {
-			this->chassis->driveForward(550, 40000);
-			//this->chassis->turnDegrees(90, 10000);
+			//this->chassis->driveForward(600, 20000);
+			//this->chassis->driveForward(300, 22000);
+			this->chassis->turnDegrees(90, 20000);
 		}
 
 		// Set up a non-blocking 1000 ms delay

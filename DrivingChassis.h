@@ -13,6 +13,12 @@
 #include "config.h"
 #include <math.h>
 
+#define RM_MULT -1
+#define LM_MULT 1
+
+#define FORWARD_SPEED 225
+#define TURNING_SPEED 275
+
 enum ChassisState {
 	DRIVING, DONE, STANDBY
 };

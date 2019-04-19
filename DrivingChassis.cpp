@@ -7,6 +7,15 @@
 
 #include "DrivingChassis.h"
 
+
+float absFloat(float f) {
+	if(f < 0.0) {
+		return f *= -1;
+	}
+
+	return f;
+}
+
 /**
  * Compute a delta in wheel angle to traverse a specific distance
  *
@@ -62,13 +71,10 @@ DrivingChassis::DrivingChassis(PIDMotor * left, PIDMotor * right,
 	this->mywheelRadiusMM = wheelRadiusMM;
 
 	this->xPID = new RBEPID();
-	this->xPID->setpid(0.05, 0, 0);
 
 	this->yPID = new RBEPID();
-	this->yPID->setpid(0.01, 0, 0.01);
 
 	this->anglePID = new RBEPID();
-	this->anglePID->setpid(0.05, 0, 0.1);
 
 	this->isYCorrectionMode = false;
 
@@ -110,13 +116,12 @@ void DrivingChassis::driveForward(float mmDistanceFromCurrent, int msDuration) {
 
 
 	/*this->xPID->setpid(0.05, 0, 0);
-	this->yPID->setpid(0.01, 0, 0.01);
-	this->anglePID->setpid(0.07, 0, 0.01);*/
+	this->yPID->setpid(0.10, 0, 0.01);
+	this->anglePID->setpid(0.1, 0, 0.01);*/
 
-	this->xPID->setpid(0.05, 0, 0);
-	this->yPID->setpid(0.01, 0, 0.01);
-	this->anglePID->setpid(0.15, 0, 0.01);
-
+	this->xPID->setpid(0.08, 0, 0);
+	this->yPID->setpid(0.03, 0, 0.01);
+	this->anglePID->setpid(0.08, 0, 0.01);
 	this->xPID->clearIntegralBuffer();
 	this->yPID->clearIntegralBuffer();
 	this->anglePID->clearIntegralBuffer();
@@ -164,7 +169,7 @@ void DrivingChassis::turnDegrees(float degreesToRotateBase, int msDuration) {
 
 	isTurning = true;
 
-	anglePID->setpid(0.1, 0, 0.2);
+	anglePID->setpid(0.1, 0, 0.6);
 
 	this->xPID->clearIntegralBuffer();
 	this->yPID->clearIntegralBuffer();
@@ -255,16 +260,23 @@ void DrivingChassis::loop() {
 		Serial.println();
 
 		//4. choose y or theta correction term
-		float upperLimit = 1, switchLimit = 0.1;
+		float upperLimit = 0.3, switchLimit = 0.01;
 
 		float turningTerm = angleOut;
 
-		if (!isYCorrectionMode && abs(abs(sineTargetY) - abs(y)) > upperLimit && !isTurning) { //might be wrong
+		Serial.println("YCorrectionModeState():");
+		Serial.println("\tisYCorrectionMode: " + String(isYCorrectionMode));
+		Serial.println("\ttargetY: " + String(targetY));
+		Serial.println("\ty: " + String(y));
+		Serial.println("\trangeCondition: " + String(absFloat(absFloat(targetY) - absFloat(y))));
+		Serial.println();
+
+		if (!isYCorrectionMode && absFloat(absFloat(targetY) - absFloat(y)) > upperLimit && !isTurning) { //might be wrong
 
 			Serial.println("Correction mode entered!");
 			isYCorrectionMode = true;
 		} else if (isYCorrectionMode
-				&& abs(abs(sineTargetY) - abs(y)) < switchLimit) {
+				&& absFloat(absFloat(targetY) - absFloat(y)) < switchLimit) {
 			isYCorrectionMode = false;
 		}
 
@@ -280,27 +292,21 @@ void DrivingChassis::loop() {
 
 		float* powers = joystick_algorithm(powerTerm, turningTerm);
 
-		myleft->setVelocityDegreesPerSecond(powers[0] * 225);
-		myright->setVelocityDegreesPerSecond(powers[1] * -225);
+		myleft->setVelocityDegreesPerSecond(powers[0] * FORWARD_SPEED * LM_MULT);
+		myright->setVelocityDegreesPerSecond(powers[1] * FORWARD_SPEED * RM_MULT);
 
 		if(isTurning) {
-			myright->setVelocityDegreesPerSecond(powers[0] * 300);
-			myleft->setVelocityDegreesPerSecond(powers[1] * -300);
-		}
-
-		if(isYCorrectionMode) {
-			Serial.println("YCorrectionMode = true");
-		} else {
-			Serial.println("YCorrectionMode = false");
+			myright->setVelocityDegreesPerSecond(powers[0] * TURNING_SPEED * LM_MULT);
+			myleft->setVelocityDegreesPerSecond(powers[1] * TURNING_SPEED * RM_MULT);
 		}
 
 	}
 	if(state == DONE) {
 		if(steps == 0) {
-			this->turnDegrees(90, 18000);
+			//this->turnDegrees(90, 20000);
 			steps++;
 		} else if(steps == 1) {
-			this->driveForward(150, 9000);
+			//this->driveForward(175, 9000);
 			steps++;
 		}
 	}
@@ -329,7 +335,7 @@ float* DrivingChassis::trapzoid_approx(float leftMotorTicks, float rightMotorTic
 		float distanceLeft = leftMotorTicks - lastLeftEncoder;
 		float distanceRight = rightMotorTicks - lastRightEncoder;
 
-		float changeDistance = (abs(distanceRight) + abs(distanceLeft)) / 2;
+		float changeDistance = ((distanceRight * RM_MULT) + (distanceLeft * LM_MULT)) / 2;
 		changeDistance = getDistanceFromTicks(changeDistance);
 
 		float *change = new float[2];
@@ -357,7 +363,7 @@ float* DrivingChassis::joystick_algorithm(float powerTerm, float turningTerm) {
 	motorPowers[1] = powerTerm - turningTerm;
 
 
-	float max = fmax(abs(motorPowers[0]), abs(motorPowers[1]));
+	float max = fmax(absFloat(motorPowers[0]), absFloat(motorPowers[1]));
 
 	if (max > 1) {
 		motorPowers[0] /= max;
