@@ -147,7 +147,7 @@ void DrivingChassis::driveForward(float mmDistanceFromCurrent, int msDuration) {
  * 		 allow for relative moves. Otherwise the motor is always in ABSOLUTE mode
  */
 void DrivingChassis::turnDegrees(float degreesToRotateBase, int msDuration) {
-	setAngleAdjustment(180);
+	//setAngleAdjustment(180);
 
 	this->targetTime = msDuration;
 
@@ -178,7 +178,7 @@ void DrivingChassis::turnDegrees(float degreesToRotateBase, int msDuration) {
 
 	lastLeftEncoder = 0;
 	lastRightEncoder = 0;
-	lastAngle = 0;
+	//lastAngle = 0;
 
 }
 
@@ -303,11 +303,16 @@ void DrivingChassis::loop() {
 	}
 	if(state == DONE) {
 		if(steps == 0) {
-			//this->turnDegrees(90, 20000);
+			this->driveForward(0, 5000);
 			steps++;
 		} else if(steps == 1) {
-			//this->driveForward(175, 9000);
+			this->turnDegrees(89, 20000);
 			steps++;
+		} else if (steps == 2) {
+			this->driveForward(0, 5000);
+			steps++;
+		} else if(steps == 3) {
+			this->driveForward(170, 9000);
 		}
 	}
 }
