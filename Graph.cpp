@@ -77,11 +77,19 @@ void Graph::setBestPath(DrivingActionManager *manager, int startX, int startY, i
 
 	while(!openList.empty()) {
 		Node *lowestCost = nullptr;
-		for(int x = openList.begin(); x < openList.size(); x++) {
+		int index = 0;
+		for(int x = 0; x < openList.size(); x++) {
 			if(lowestCost == nullptr || lowestCost->f > openList.at(x)->f) {
-				lowestCost = openList.at(x)->f;
+				lowestCost = openList.at(x);
+				index = x;
 			}
 		}
+
+		openList.erase(openList.at(index));
+
+
+
+
 	}
 
 }

@@ -17,7 +17,7 @@ CityNavigator::~CityNavigator() {
 
 
 void CityNavigator::findBestPath(int xIndex, int yIndex) {
-	Street
+
 }
 
 
