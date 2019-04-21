@@ -162,6 +162,10 @@ public:
 		lastAngle = angle;
 	}
 
+	ChassisState getState() const {
+		return state;
+	}
+
 };
 
 #endif /* DRIVINGCHASSIS_H_ */

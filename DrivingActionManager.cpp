@@ -42,3 +42,14 @@ void DrivingActionManager::performNextAction() {
 		head = new_head;
 	}
 }
+
+void DrivingActionManager::loop() {
+	if(chassis->getState() == DRIVING) {
+		chassis->loop();
+	} else {
+		if(hasNext()) {
+			performNextAction();
+		}
+		chassis->loop();
+	}
+}

@@ -21,7 +21,7 @@ StudentsRobot::StudentsRobot(PIDMotor * motor1, PIDMotor * motor2,
 	this->lookup = new Lookup(); //LT (4/2/2019) - added due to the requirement 5.1
 
 #if defined(USE_IMU)
-	IMU->setXPosition(200);
+	IMU->setXPosition(0);
 	IMU->setYPosition(0);
 	IMU->setZPosition(0);
 #endif
@@ -96,6 +96,8 @@ StudentsRobot::StudentsRobot(PIDMotor * motor1, PIDMotor * motor2,
 
 
 	this->chassis = new DrivingChassis(this->motor1, this->motor2, 220, 25.4, IMU);
+
+	this->manager = new DrivingActionManager(chassis);
 }
 /**
  * Seperate from running the motor control,
@@ -127,13 +129,6 @@ void StudentsRobot::updateStateMachine() {
 		nextTime = startTime + 1000; // the next timer loop should be 1000ms after the motors stop
 		break;
 	case Running:
-
-		if(this->chassis->state == STANDBY) {
-			this->chassis->driveForward(600, 20000);
-			//this->chassis->driveForward(300, 22000);
-			//this->chassis->turnDegrees(90, 20000);
-		}
-
 		// Set up a non-blocking 1000 ms delay
 		status = WAIT_FOR_TIME;//		nextTime = nextTime + 100; // ensure no timer drift by incremeting the target
 		// After 1000 ms, come back to this state
@@ -155,12 +150,12 @@ void StudentsRobot::updateStateMachine() {
 
 		}
 
-		this->chassis->loop(); // maybe this goes here? LT - (4/9/2019)
+		this->manager->loop(); // maybe this goes here? LT - (4/9/2019)
 
 		break;
 	case WAIT_FOR_TIME:
 
-		this->chassis->loop(); // maybe this goes here? LT - (4/9/2019)
+		this->manager->loop(); // maybe this goes here? LT - (4/9/2019)
 		// Check to see if enough time has elapsed
 		if (nextTime <= millis()) {
 			// if the time is up, move on to the next state
@@ -198,8 +193,6 @@ void StudentsRobot::updateStateMachine() {
  * This will read from the concoder and write to the motors and handle the hardware interface.
  */
 void StudentsRobot::pidLoop() {
-
-
 	motor1->loop();
 	motor2->loop();
 	motor3->loop();

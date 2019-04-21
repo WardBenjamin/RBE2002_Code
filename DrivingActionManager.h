@@ -23,6 +23,10 @@ public:
 	bool hasNext();
 	void addDrivingAction(DrivingAction*);
 	void performNextAction();
+
+	void loop();
+
+	void determineBestPath();
 };
 
 #endif /* DRIVINGACTIONMANAGER_H_ */

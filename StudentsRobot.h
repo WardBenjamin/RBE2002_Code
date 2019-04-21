@@ -18,6 +18,7 @@
 #include "DrivingChassis.h"
 #include "src/commands/IRCamSimplePacketComsServer.h"
 #include "src/commands/GetIMU.h"
+#include "DrivingActionManager.h"
 
 /**
  * @enum RobotStateMachine
@@ -69,6 +70,8 @@ private:
 	GetIMU * IMU;
 
 	DrivingChassis *chassis; // LT - (4/9/2019)
+	DrivingActionManager *manager;
+
 public:
 
 	DrivingChassis* getChassis() const {return chassis;}
