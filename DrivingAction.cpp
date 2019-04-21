@@ -22,7 +22,7 @@ void DrivingAction::setNextDrivingAction(DrivingAction *next) {
 	this->next = next;
 }
 
-DrivingAction* DrivingAction::getNextDrivingAction() { return *next; }
+DrivingAction* DrivingAction::getNextDrivingAction() { return next; }
 
 void DrivingAction::perform(DrivingChassis *chassis) {
 	if(action == TURN) {

@@ -15,11 +15,13 @@
 #include <DFRobotIRPosition.h>
 
 #include "src/RobotControlCenter.h"
+
+
 #include "config.h"
 
 RobotControlCenter * controlCenter;
 void setup() {
-	controlCenter = new RobotControlCenter(new String(TEAM_NAME));
+controlCenter = new RobotControlCenter(new String(TEAM_NAME));
 
 }
 

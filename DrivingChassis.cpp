@@ -65,6 +65,8 @@ DrivingChassis::DrivingChassis(PIDMotor * left, PIDMotor * right,
 		float wheelTrackMM, float wheelRadiusMM, GetIMU * imu) {
 
 	this->IMU = imu;
+	this->IMU->setGlobalAngle();
+
 	this->myleft = left;
 	this->myright = right;
 	this->mywheelTrackMM = wheelTrackMM;
@@ -97,9 +99,8 @@ void DrivingChassis::driveForward(float mmDistanceFromCurrent, int msDuration) {
 	targetX = mmDistanceFromCurrent;
 	targetY = 0;
 
-	IMU->setXPosition(0);
-	IMU->setYPosition(0);
-	IMU->setZPosition(0);
+	localX = 0;
+	localY = 0;
 
 	this->myleft->overrideCurrentPosition(0);
 	this->myright->overrideCurrentPosition(0);
@@ -154,9 +155,8 @@ void DrivingChassis::turnDegrees(float degreesToRotateBase, int msDuration) {
 	targetX = 0;
 	targetY = 0;
 
-	IMU->setXPosition(0);
-	IMU->setYPosition(0);
-	IMU->setZPosition(0);
+	localX = 0;
+	localY = 0;
 
 	this->myleft->overrideCurrentPosition(0);
 	this->myright->overrideCurrentPosition(0);
@@ -206,8 +206,8 @@ void DrivingChassis::loop() {
 		Serial.println("\n\n\n<---loop(DRIVING)--->");
 		Serial.println("heading: {" + String(targetX) + "," + String(targetY) + ", " + String(lastAngle) + "}\n");
 		//step 1: determine the location
-		float x = this->IMU->getXPosition();
-		float y = this->IMU->getYPosition();
+		float x = localX;
+		float y = localY;
 
 		float *change = this->trapzoid_approx(myleft->getPosition(), myright->getPosition());
 
@@ -273,7 +273,6 @@ void DrivingChassis::loop() {
 
 		if (!isYCorrectionMode && absFloat(absFloat(targetY) - absFloat(y)) > upperLimit && !isTurning) { //might be wrong
 
-			Serial.println("Correction mode entered!");
 			isYCorrectionMode = true;
 		} else if (isYCorrectionMode
 				&& absFloat(absFloat(targetY) - absFloat(y)) < switchLimit) {
@@ -300,20 +299,6 @@ void DrivingChassis::loop() {
 			myleft->setVelocityDegreesPerSecond(powers[1] * TURNING_SPEED * RM_MULT);
 		}
 
-	}
-	if(state == DONE) {
-		if(steps == 0) {
-			this->driveForward(0, 5000);
-			steps++;
-		} else if(steps == 1) {
-			this->turnDegrees(89, 20000);
-			steps++;
-		} else if (steps == 2) {
-			this->driveForward(0, 5000);
-			steps++;
-		} else if(steps == 3) {
-			this->driveForward(170, 9000);
-		}
 	}
 }
 float DrivingChassis::getAngle() {
@@ -386,8 +371,19 @@ float* DrivingChassis::joystick_algorithm(float powerTerm, float turningTerm) {
 }
 
 void DrivingChassis::update(float x, float y) {
-	IMU->setXPosition(x);
-	IMU->setYPosition(y);
+
+	float changeX = y - localY;
+	float changeY = x - localX; //remeber x and y are flipped
+
+	float distance = sqrt(changeX * changeX + changeY * changeY);
+
+	float globalAngle = IMU->getAngle();
+
+	IMU->addToXPosition(sin(radians(globalAngle)) * distance);
+	IMU->addToYPosition(cos(radians(globalAngle)) * distance);
+
+	localX = x;
+	localY = y;
 
 	lastLeftEncoder = myleft->getPosition();
 	lastRightEncoder = myright->getPosition();
@@ -397,5 +393,11 @@ void DrivingChassis::update(float x, float y) {
 		Serial.println(
 						"IMU: {" + String(IMU->getXPosition()) + ", "
 								+ String(IMU->getYPosition()) + "}\n");
+		Serial.println(
+								"Local: {" + String(localX) + ", "
+										+ String(localY) + "}\n");
 	}
+
+
+
 }

@@ -21,8 +21,8 @@ StudentsRobot::StudentsRobot(PIDMotor * motor1, PIDMotor * motor2,
 	this->lookup = new Lookup(); //LT (4/2/2019) - added due to the requirement 5.1
 
 #if defined(USE_IMU)
-	IMU->setXPosition(0);
-	IMU->setYPosition(0);
+	IMU->setXPosition(STARTING_ROBOT_X);
+	IMU->setYPosition(STARTING_ROBOT_Y);
 	IMU->setZPosition(0);
 #endif
 	// Set the PID Clock gating rate. The PID must be 10 times slower than the motors update rate

@@ -35,7 +35,7 @@ void DrivingActionManager::addDrivingAction(DrivingAction *action) {
 }
 void DrivingActionManager::performNextAction() {
 	if(head != nullptr) {
-		DrivingChassis *new_head = head->getNextDrivingAction();
+		DrivingAction* new_head = head->getNextDrivingAction();
 
 		head->perform(this->chassis);
 

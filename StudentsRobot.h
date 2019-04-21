@@ -20,6 +20,8 @@
 #include "src/commands/GetIMU.h"
 #include "DrivingActionManager.h"
 
+#include "RobotGeometry.h"
+
 /**
  * @enum RobotStateMachine
  * These are sample values for a sample state machine.
@@ -113,6 +115,8 @@ public:
 	 * the students state machine can be updated with this function
 	 */
 	void updateStateMachine();
+
+	GetIMU* getIMU() const { return IMU; }
 };
 
 #endif /* STUDENTSROBOT_H_ */

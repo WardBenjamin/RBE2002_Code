@@ -38,10 +38,24 @@ public:
 	float getGlobalPIDYSetPoint();
 	float getGlobalPIDXSetPoint();
 
-	float getStreetLength() const { return length; }
-	float getStreetHeight() const { return height; }
+	float getStreetLength() const {
+		return length;
+	}
+	float getStreetHeight() const {
+		return height;
+	}
+	float getStartX() const { return startX; }
+	float getStartY() const { return startY;}
 
+	float getEndY() const {return endY;}
+	float getEndX() const { return endX;}
 
+	void setSouthIntersection(Street*);
+	void setNorthIntersection(Street*);
+	void setWestIntersection(Street*);
+	void setEastIntersection(Street*);
+
+	Street** getIntersection();
 
 };
 

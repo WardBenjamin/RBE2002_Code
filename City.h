@@ -9,12 +9,14 @@
 #define CITY_H_
 
 #include "Street.h"
+#include "RobotGeometry.h"
+#include "CityGeometry.h"
 
 class City {
 
 private:
 	void generateCity();
-	Street *startNode[2]; // south street, east street
+	Street *startNode; // south street, east street
 public:
 	City();
 	virtual ~City();

@@ -8,7 +8,6 @@
 #ifndef LIBRARIES_MEDIUMKATFIRMWARE_SRC_GETIMU_H_
 #define LIBRARIES_MEDIUMKATFIRMWARE_SRC_GETIMU_H_
 
-
 #include <SimplePacketComs.h>
 
 #include <Adafruit_Sensor.h>
@@ -22,27 +21,25 @@ private:
 	imu::Vector<3> a;
 	imu::Vector<3> g;
 	imu::Vector<3> e;
-	volatile float  bufferINTERNAL[NUM_IMU_VALUES];
+	volatile float bufferINTERNAL[NUM_IMU_VALUES];
 	bool started;
-	int updateIndex=0;
+	int updateIndex = 0;
 
 	long last = -1;
 
-	float baseAngle;
+	float adjustAngle;
 
 public:
 	// Packet ID needs to be set
 	GetIMU() :
-		PacketEventAbstract(1804)	// Address of this event
-{
-		started=false;
-		bno=NULL;
+			PacketEventAbstract(1804)	// Address of this event
+	{
+		started = false;
+		bno = NULL;
 		setXPosition(0);
 		setYPosition(0);
 		setZPosition(0);
-
-		baseAngle = 9999;
-}
+	}
 	//User function to be called when a packet comes in
 	// Buffer contains data from the packet cming in at the start of the function
 	// User data is written into the buffer to send it back
@@ -64,7 +61,6 @@ public:
 	float getEULER_elevation();
 	float getEULER_tilt();
 
-	float getAngleFromBase();
 
 	void setXPosition(float x);
 	void setYPosition(float y);
@@ -77,7 +73,10 @@ public:
 	void addToYPosition(float y);
 	void addToZPosition(float z);
 
-};
+	void setGlobalAngle();
 
+	float getAngle();
+
+};
 
 #endif /* LIBRARIES_MEDIUMKATFIRMWARE_SRC_GETIMU_H_ */

@@ -59,6 +59,9 @@ private:
 	float targetAngle;
 
 	int steps = 0;
+
+	float localX, localY;
+
 	/**
 	 * Compute a delta in wheel angle to traverse a specific distance
 	 *

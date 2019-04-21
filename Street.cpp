@@ -38,5 +38,29 @@ float Street::getLocalPIDYSetPoint() {
 float Street::getLocalPIDXSetPoint() {
 	return endX - startX;
 }
+void  Street::setEastIntersection(Street *street) {
+	intersects[EAST_INDEX] = street;
+
+	street->getIntersection()[WEST_INDEX] = this;
+}
+void  Street::setWestIntersection(Street *street) {
+	intersects[WEST_INDEX] = street;
+
+	street->getIntersection()[EAST_INDEX] = this;
+}
+void  Street::setNorthIntersection(Street *street) {
+	intersects[NORTH_INDEX] = street;
+
+	street->getIntersection()[SOUTH_INDEX] = this;
+}
+void  Street::setSouthIntersection(Street *street) {
+	intersects[SOUTH_INDEX] = street;
+
+	street->getIntersection()[NORTH_INDEX] = this;
+}
+
+Street**  Street::getIntersection(){
+	return intersects;
+}
 
 
