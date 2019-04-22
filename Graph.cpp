@@ -186,7 +186,6 @@ Node::Edge* findConnectingEdge(Node *source, Node *destination) {
 	return nullptr;
 }
 
-
 void Graph::resetGraphCost() {
 	for (int x = 0; x < 4; x++) {
 		for (int y = 0; y < 4; y++) {
