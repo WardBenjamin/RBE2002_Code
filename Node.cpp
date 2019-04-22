@@ -26,6 +26,9 @@ void Node::setNorthernEdge(Edge *edge) {
 void Node::setSouthernEdge(Edge *edge) {
 	this->edges[SOUTH_INDEX] = edge;
 }
+void Node::setID(int id) {
+	this->id = id;
+}
 
 Node* Node::createNewEasternNode(float length) {
 	Edge *edge = new Edge;
@@ -78,4 +81,7 @@ void Node::resetCost() {
 	g = 0;
 	h = 0;
 	f = 0;
+}
+void Node::resetPredecessor() {
+	predecessor = nullptr;
 }

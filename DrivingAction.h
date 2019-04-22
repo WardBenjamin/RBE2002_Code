@@ -33,6 +33,13 @@ public:
 	DrivingAction* getNextDrivingAction();
 
 	void perform(DrivingChassis*);
+
+	Action getAction() const {
+		return action;
+	}
+	float getValue() const {
+		return param;
+	}
 };
 
 #endif /* DRIVINGACTION_H_ */

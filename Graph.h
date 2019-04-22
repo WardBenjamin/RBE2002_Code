@@ -16,6 +16,8 @@
 class Graph {
 private:
 	Node *startNode;
+
+	int nodeID = 0;
 public:
 	Graph();
 	virtual ~Graph();
@@ -27,7 +29,12 @@ public:
 
 	void setBestPath(DrivingActionManager*, int, int, int, int);
 
+	void pathToDrivingActions(Node*, DrivingActionManager*);
+	Node::Edge* findConnectingEdge(Node*, Node*);
+
+
 	void resetGraphCost();
+	void printGraph(Node *);
 };
 
 #endif /* GRAPH_H_ */

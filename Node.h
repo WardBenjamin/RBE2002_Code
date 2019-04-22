@@ -18,13 +18,15 @@ class Node {
 private:
 	struct Edge {
 		float lengthX, lengthY;
-		Node *source, destination;
+		Node *source, *destination;
 	};
 
-	Edge *edges[4];
+	int id;
 public:
 	Node();
 	virtual ~Node();
+
+	Edge *edges[4];
 
 	Edge* getNorthEdge() const {
 		return edges[NORTH_INDEX];
@@ -48,8 +50,15 @@ public:
 	Node* createNewEasternNode(float);
 
 	float g, h, f;
+	Node *predecessor;
 
 	void resetCost();
+	void resetPredecessor();
+
+	void setID(int);
+	int getID() const {
+		return id;
+	}
 };
 
 
