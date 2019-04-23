@@ -131,6 +131,8 @@ void DrivingChassis::driveForward(float mmDistanceFromCurrent, int msDuration) {
 
 	lastLeftEncoder = 0;
 	lastRightEncoder = 0;
+
+	setAngleAdjustment(180);
 }
 
 /**
@@ -162,7 +164,9 @@ void DrivingChassis::turnDegrees(float degreesToRotateBase, int msDuration) {
 
 	state = DRIVING;
 
-	this->targetAngle = degreesToRotateBase;
+	this->targetAngle = 180 + degreesToRotateBase;
+
+	setAngleAdjustment(180);
 
 	startTime = millis();
 
@@ -254,7 +258,7 @@ void DrivingChassis::loop() {
 				"\tanglePID->calc(" + String(targetAngle) + ", "
 						+ String(getAngle()) + ") = " + String(angleOut));*/
 
-		//Serial.println();
+		Serial.println();
 
 		//4. choose y or theta correction term
 		float upperLimit = 0.3, switchLimit = 0.01;
@@ -397,7 +401,7 @@ void DrivingChassis::update(float x, float y) {
 	lastAngle = getAngle(); //update the last angle
 
 	if (showIMU) {
-		//Serial.println("\n\n\n<---loop(DRIVING)--->");
+
 		Serial.println(
 				"Heading: {" + String(targetX) + "," + String(targetY) + ", "
 						+ String(targetAngle) + "}");

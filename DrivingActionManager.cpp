@@ -43,7 +43,7 @@ void DrivingActionManager::performNextAction() {
 			//check for the roadblock to make sure that it is safe
 			float forwardDistance = this->chassis->getRangeFinder()->readSensorMM();
 
-			if(forwardDistance < head->getValue() + 10) { //there is probably a road block
+			/*if(forwardDistance < head->getValue() + 10) { //there is probably a road block
 				//now reroute the route
 
 				Node *badNode = head->getEndNode();
@@ -53,7 +53,7 @@ void DrivingActionManager::performNextAction() {
 				badNode->deleteEdge(WEST_INDEX);
 				badNode->deleteEdge(EAST_INDEX);
 
-			}
+			}*/
 		}
 
 		head->perform(this->chassis);

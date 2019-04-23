@@ -46,7 +46,7 @@ void DrivingAction::perform(DrivingChassis *chassis) {
 			Serial.println("Robot is already at the angle and thus shouldn't move");
 		}
 
-		chassis->turnDegrees(degreesToTurn, degreesToTurn * MS_PER_DEGREE);
+		chassis->turnDegrees(degreesToTurn, abs(degreesToTurn) * MS_PER_DEGREE);
 
 	} else if (action == DRIVE) {
 		chassis->driveForward(param, param * MS_PER_MILIMETER);

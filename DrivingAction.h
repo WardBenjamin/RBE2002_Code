@@ -12,7 +12,7 @@
 #include "Node.h"
 
 
-#define MS_PER_DEGREE 100
+#define MS_PER_DEGREE 20
 #define MS_PER_MILIMETER 10
 
 enum Action {
