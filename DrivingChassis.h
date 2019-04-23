@@ -13,10 +13,10 @@
 #include "config.h"
 #include <math.h>
 
-#define RM_MULT -1
-#define LM_MULT 1
+#define RM_MULT 1
+#define LM_MULT -1
 
-#define FORWARD_SPEED 225
+#define FORWARD_SPEED 400
 #define TURNING_SPEED 275
 
 enum ChassisState {
@@ -54,7 +54,7 @@ private:
 
 	RBEPID *xPID, *yPID, *anglePID;
 
-	bool isYCorrectionMode, trapzoid_debug = true, joystick_debug = true, showIMU = true, isTurning;
+	bool isYCorrectionMode, trapzoid_debug = false, joystick_debug = false, showIMU = true, isTurning;
 
 	float targetAngle;
 
@@ -167,6 +167,9 @@ public:
 
 	ChassisState getState() const {
 		return state;
+	}
+	GetIMU* getIMU() const {
+		return IMU;
 	}
 
 };

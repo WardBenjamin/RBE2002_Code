@@ -9,7 +9,7 @@
 
 Graph::Graph() {
 	createGraph();
-	printGraph(0, 0);
+	//printGraph(0, 0);
 }
 
 Graph::~Graph() {
@@ -93,8 +93,13 @@ void Graph::setBestPath(DrivingActionManager *manager, int startX, int startY,
 			}
 		}
 
+		//Serial.println("Lowest Cost: ");
+		//lowestCost->printNode();
+
 		openList.erase(openList.begin() + index);
 		closedList.insert(closedList.begin(), lowestCost);
+
+		//Serial.println("Node erased from openList and place into closedList");
 
 		if (lowestCost == getNodeAt(endX, endY)) {
 			pathToDrivingActions(lowestCost, manager);
@@ -103,14 +108,19 @@ void Graph::setBestPath(DrivingActionManager *manager, int startX, int startY,
 		for (int x = 0; x < 4; x++) {
 			bool found = false;
 			for (int i = 0; i < closedList.size(); i++) {
-				if (closedList.at(i) == lowestCost->edges[x]->destination) {
+				if (lowestCost->edges[x] == nullptr
+						|| closedList.at(i)
+								== lowestCost->edges[x]->destination) {
 					found = true;
 					break;
 				}
-				if (found) {
-					continue;
-				}
+
 			}
+			if (found) {
+				continue;
+			}
+
+			//Serial.println("x: " + String(x) + " closedList size(): " + String(closedList.size()));
 
 			Node *child = lowestCost->edges[x]->destination;
 			child->g = lowestCost->g
@@ -127,9 +137,10 @@ void Graph::setBestPath(DrivingActionManager *manager, int startX, int startY,
 					found = true;
 					break;
 				}
-				if (found && child->g > lowestCost->g) {
-					continue;
-				}
+			}
+
+			if (found && child->g > lowestCost->g) {
+				continue;
 			}
 
 			child->predecessor = lowestCost;
@@ -145,20 +156,22 @@ void Graph::pathToDrivingActions(Node *end, DrivingActionManager *manager) {
 
 	Node *curr = end;
 
-	while (curr != nullptr) {
+	curr->printNode();
+
+	while (curr != nullptr && curr->predecessor != nullptr) {
 		Node::Edge *edge = findConnectingEdge(curr->predecessor, curr);
+
 		actions.insert(actions.begin(),
 				new DrivingAction(DRIVE, edge->lengthX + edge->lengthY));
 
-		if (curr->getEastEdge() == edge) {
-			actions.insert(actions.begin(), new DrivingAction(TURN, 0));
-		} else if (curr->getWestEdge() == edge) {
-			actions.insert(actions.begin(), new DrivingAction(TURN, 180));
-		} else if (curr->getNorthEdge() == edge) {
-			actions.insert(actions.begin(), new DrivingAction(TURN, 270));
-		}
-		if (curr->getSouthEdge() == edge) {
+		if (curr->predecessor->getEastEdge() == edge) {
 			actions.insert(actions.begin(), new DrivingAction(TURN, 90));
+		} else if (curr->predecessor->getWestEdge() == edge) {
+			actions.insert(actions.begin(), new DrivingAction(TURN, 270));
+		} else if (curr->predecessor->getNorthEdge() == edge) {
+			actions.insert(actions.begin(), new DrivingAction(TURN, 0));
+		} else if (curr->predecessor->getSouthEdge() == edge) {
+			actions.insert(actions.begin(), new DrivingAction(TURN, 180));
 		}
 		curr = curr->predecessor;
 	}
@@ -167,22 +180,14 @@ void Graph::pathToDrivingActions(Node *end, DrivingActionManager *manager) {
 		manager->addDrivingAction(actions.at(x)); //add all of the items to the paths
 
 		Serial.print(String(x) + ". ");
-
-		if (actions.at(x)->getAction() == TURN) {
-			Serial.print(
-					"TURN to " + String(actions.at(x)->getValue())
-							+ " degrees\n");
-		} else {
-			Serial.print(
-					"DRIVE for " + String(actions.at(x)->getValue()) + " mm\n");
-		}
-
+		actions.at(x)->printDrivingAction();
 	}
 }
 
 Node::Edge* Graph::findConnectingEdge(Node *source, Node *destination) {
 	for (int x = 0; x < 4; x++) {
-		if (source->edges[x]->destination == destination
+		if (source->edges[x] != nullptr
+				&& source->edges[x]->destination == destination
 				&& destination != nullptr) {
 			return source->edges[x];
 		}
@@ -198,40 +203,14 @@ void Graph::resetGraphCost() {
 		}
 	}
 }
-void Graph::printGraph(int x, int y){
+void Graph::printGraph(int x, int y) {
 	Node *node = getNodeAt(x, y);
-	Serial.println("Node #" + String(node->getID()) + ":");
 
-	if (node->getNorthEdge() != nullptr)
-		Serial.println(
-				"\t- side: NORTH; length: "
-						+ String(node->getNorthEdge()->lengthY)
-						+ "; destination: Node #"
-						+ String(node->getNorthEdge()->destination->getID()));
-	if (node->getSouthEdge() != nullptr)
-		Serial.println(
-				"\t- side: SOUTH; length: "
-						+ String(node->getSouthEdge()->lengthY)
-						+ "; destination: Node #"
-						+ String(node->getSouthEdge()->destination->getID()));
-	if (node->getWestEdge() != nullptr)
-		Serial.println(
-				"\t- side: WEST; length: "
-						+ String(node->getWestEdge()->lengthX)
-						+ "; destination: Node #"
-						+ String(node->getWestEdge()->destination->getID()));
-	if (node->getEastEdge() != nullptr)
-		Serial.println(
-				"\t- side: EAST; length: "
-						+ String(node->getEastEdge()->lengthX)
-						+ "; destination: Node #"
-						+ String(node->getEastEdge()->destination->getID()));
+	node->printNode();
 
-	Serial.println();
-
-	if(x < 3) {
+	if (x < 3) {
 		return printGraph(x + 1, y);
-	} else if(y < 3) {
+	} else if (y < 3) {
 		return printGraph(0, y + 1);
 	}
 }

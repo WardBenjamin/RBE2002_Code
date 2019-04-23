@@ -160,15 +160,18 @@ float GetIMU::getYPosition() {
 	return bufferINTERNAL[13];
 }
 
+void GetIMU::setGlobalAngle() {
+	adjustAngle = 180 - this->getEULER_azimuth();
+}
+
 float GetIMU::getAngle() {
-	float angle = getEULER_azimuth() + adjustAngle;
-	if (angle > 360)
+	float angle = this->getEULER_azimuth() + adjustAngle;
+	if(angle > 360)
 		return angle - 360;
-	if (angle < 0)
+	if(angle < 0)
 		return angle + 360;
+
 	return angle;
 }
-void GetIMU::setGlobalAngle() {
-	adjustAngle = 90 - getEULER_azimuth();
-}
+
 

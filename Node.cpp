@@ -38,51 +38,41 @@ void Node::setID(int id) {
 	this->id = id;
 }
 
-Node* Node::createNewEasternNode(float length) {
-	Edge *edge = new Edge;
-	edge->lengthX = length;
-	edge->lengthY = 0;
+void Node::printNode() {
+	Serial.println("Node #" + String(getID()) + ":");
 
-	Node *node = new Node();
+		if (getNorthEdge() != nullptr)
+			Serial.println(
+					"\t- side: NORTH; length: "
+							+ String(getNorthEdge()->lengthY)
+							+ "; destination: Node #"
+							+ String(getNorthEdge()->destination->getID()));
+		if (getSouthEdge() != nullptr)
+			Serial.println(
+					"\t- side: SOUTH; length: "
+							+ String(getSouthEdge()->lengthY)
+							+ "; destination: Node #"
+							+ String(getSouthEdge()->destination->getID()));
+		if (getWestEdge() != nullptr)
+			Serial.println(
+					"\t- side: WEST; length: "
+							+ String(getWestEdge()->lengthX)
+							+ "; destination: Node #"
+							+ String(getWestEdge()->destination->getID()));
+		if (getEastEdge() != nullptr)
+			Serial.println(
+					"\t- side: EAST; length: "
+							+ String(getEastEdge()->lengthX)
+							+ "; destination: Node #"
+							+ String(getEastEdge()->destination->getID()));
 
-	edge->source = this;
-	edge->destination = node;
 
-	this->setEasternEdge(edge);
-
-	edge = new Edge;
-	edge->lengthX = length;
-	edge->lengthY = 0;
-
-	edge->source = node;
-	edge->destination = this;
-
-	node->setWesternEdge(edge);
-
-	return node;
-}
-Node* Node::createNewSouthernNode(float length) {
-	Edge *edge = new Edge;
-	edge->lengthY = length;
-	edge->lengthX = 0;
-
-	Node *node = new Node();
-
-	edge->source = this;
-	edge->destination = node;
-
-	this->setSouthernEdge(edge);
-
-	edge = new Edge;
-	edge->lengthY = length;
-	edge->lengthX = 0;
-
-	edge->source = node;
-	edge->destination = this;
-
-	node->setNorthernEdge(edge);
-
-	return node;
+		if(this->predecessor != nullptr) {
+			Serial.println("predecessor: Node #" + String(this->predecessor->getID()));
+		} else {
+			Serial.println("predecessor: none");
+		}
+		Serial.println();
 }
 
 void Node::resetCost() {

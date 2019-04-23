@@ -13,13 +13,14 @@
 #define WEST_INDEX 2
 #define SOUTH_INDEX 3
 
+#include "DrivingActionManager.h"
 
 class Node {
 private:
 	int id;
 public:
 	struct Edge {
-		float lengthX, lengthY;
+		float lengthX = 0, lengthY = 0;
 		Node *source, *destination;
 	};
 
@@ -56,6 +57,8 @@ public:
 
 	void resetCost();
 	void resetPredecessor();
+
+	void printNode();
 
 	void setID(int);
 	int getID() const {

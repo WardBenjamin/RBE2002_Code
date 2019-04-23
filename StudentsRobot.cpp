@@ -116,7 +116,7 @@ void StudentsRobot::updateStateMachine() {
 
 		Serial.println("StudentsRobot::updateStateMachine StartupRobot here ");
 
-		//this->graph->setBestPath(manager, 0, 0, 2, 2);
+		this->graph->setBestPath(manager, 0, 0, 2, 2);
 		break;
 	case StartRunning:
 		Serial.println("Start Running");
@@ -155,12 +155,12 @@ void StudentsRobot::updateStateMachine() {
 
 		}
 
-		//this->manager->loop(); // maybe this goes here? LT - (4/9/2019)
+		this->manager->loop(); // maybe this goes here? LT - (4/9/2019)
 
 		break;
 	case WAIT_FOR_TIME:
 
-		//this->manager->loop(); // maybe this goes here? LT - (4/9/2019)
+		this->manager->loop(); // maybe this goes here? LT - (4/9/2019)
 		// Check to see if enough time has elapsed
 		if (nextTime <= millis()) {
 			// if the time is up, move on to the next state

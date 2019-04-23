@@ -10,11 +10,12 @@
 
 #include "DrivingChassis.h"
 
-#define MS_PER_DEGREE 10
+
+#define MS_PER_DEGREE 100
 #define MS_PER_MILIMETER 10
 
 enum Action {
-	DRIVE, TURN
+	DRIVE = 0, TURN = 1
 };
 
 class DrivingAction {
@@ -33,6 +34,8 @@ public:
 	DrivingAction* getNextDrivingAction();
 
 	void perform(DrivingChassis*);
+
+	void printDrivingAction();
 
 	Action getAction() const {
 		return action;
