@@ -16,13 +16,15 @@
 
 class Node {
 private:
+	int id;
+public:
 	struct Edge {
 		float lengthX, lengthY;
 		Node *source, *destination;
 	};
 
-	int id;
-public:
+	static int nodeID;
+
 	Node();
 	virtual ~Node();
 
@@ -38,7 +40,7 @@ public:
 		return edges[WEST_INDEX];
 	}
 	Edge* getEastEdge() const {
-		return edges[NORTH_INDEX];
+		return edges[EAST_INDEX];
 	}
 
 	void setEasternEdge(Edge*);
@@ -60,6 +62,5 @@ public:
 		return id;
 	}
 };
-
 
 #endif /* NODE_H_ */

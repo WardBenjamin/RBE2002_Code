@@ -17,13 +17,12 @@ class Graph {
 private:
 	Node *startNode;
 
-	int nodeID = 0;
+	Node *nodeMap[4][4];
 public:
 	Graph();
 	virtual ~Graph();
 
 	void createGraph();
-	void spawn(int x, int y, Node *node);
 
 	Node* getNodeAt(int, int);
 
@@ -34,7 +33,7 @@ public:
 
 
 	void resetGraphCost();
-	void printGraph(Node *);
+	void printGraph(int, int);
 };
 
 #endif /* GRAPH_H_ */

@@ -7,8 +7,16 @@
 
 #include "Node.h"
 
-Node::Node() {
+int Node::nodeID = 0;
 
+Node::Node() {
+	id = nodeID;
+	nodeID++;
+
+	edges[0] = nullptr;
+	edges[1] = nullptr;
+	edges[2] = nullptr;
+	edges[3] = nullptr;
 }
 
 Node::~Node() {
