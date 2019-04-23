@@ -11,6 +11,7 @@
 #include "RBEPID.h"
 #include "src/commands/GetIMU.h"
 #include "config.h"
+#include "RangeFinder.h"
 #include <math.h>
 
 #define RM_MULT 1
@@ -53,6 +54,8 @@ private:
 	float lastAngle = 0;
 
 	RBEPID *xPID, *yPID, *anglePID;
+
+	RangeFinder *rf;
 
 	bool isYCorrectionMode, trapzoid_debug = false, joystick_debug = false, showIMU = true, isTurning;
 
@@ -104,7 +107,7 @@ public:
 	 * @param wheelTrackMM is the measurment in milimeters of the distance from the left wheel contact point to the right wheels contact point
 	 * @param wheelRadiusMM is the measurment in milimeters of the radius of the wheels
 	 */
-	DrivingChassis(PIDMotor * left, PIDMotor * right, float wheelTrackMM,
+	DrivingChassis(RangeFinder*, PIDMotor * left, PIDMotor * right, float wheelTrackMM,
 			float wheelRadiusMM, GetIMU * imu);
 
 	/**
@@ -170,6 +173,9 @@ public:
 	}
 	GetIMU* getIMU() const {
 		return IMU;
+	}
+	RangeFinder* getRangeFinder() const {
+		return rf;
 	}
 
 };

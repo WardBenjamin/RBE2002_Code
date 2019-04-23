@@ -60,10 +60,11 @@ DrivingChassis::~DrivingChassis() {
  * @param wheelTrackMM is the measurment in milimeters of the distance from the left wheel contact point to the right wheels contact point
  * @param wheelRadiusMM is the measurment in milimeters of the radius of the wheels
  */
-DrivingChassis::DrivingChassis(PIDMotor * left, PIDMotor * right,
+DrivingChassis::DrivingChassis(RangeFinder *rf, PIDMotor * left, PIDMotor * right,
 		float wheelTrackMM, float wheelRadiusMM, GetIMU * imu) {
 
 	this->IMU = imu;
+	this->rf = rf;
 
 	this->myleft = left;
 	this->myright = right;
@@ -86,8 +87,6 @@ DrivingChassis::DrivingChassis(PIDMotor * left, PIDMotor * right,
 	IMU->setXPosition(0);
 	IMU->setYPosition(0);
 
-	IMU->setGlobalAngle();
-
 }
 
 /**
@@ -105,6 +104,7 @@ void DrivingChassis::driveForward(float mmDistanceFromCurrent, int msDuration) {
 
 	targetX = mmDistanceFromCurrent;
 	targetY = 0;
+	targetAngle = 180;
 
 	localX = 0;
 	localY = 0;
@@ -239,22 +239,22 @@ void DrivingChassis::loop() {
 			return;
 		}
 
-		Serial.println("calculate_PID():");
+		//Serial.println("calculate_PID():");
 		//3. compute PID result
 		float xOut = xPID->calc(sineTargetX, x);
 		//Serial.println("\txPID->calc(" + String(sineTargetX) + ", " + String(x) + ") = " + String(xOut));
 
 		float yOut = yPID->calc(sineTargetY, y);
-		Serial.println(
+		/*Serial.println(
 				"\tyPID->calc(" + String(sineTargetY) + ", " + String(y)
-						+ ") = " + String(yOut));
+						+ ") = " + String(yOut));*/
 
 		float angleOut = anglePID->calc(targetAngle, getAngle()); //remove angle toggle point by subtracting 150
-		Serial.println(
+		/*Serial.println(
 				"\tanglePID->calc(" + String(targetAngle) + ", "
-						+ String(getAngle()) + ") = " + String(angleOut));
+						+ String(getAngle()) + ") = " + String(angleOut));*/
 
-		Serial.println();
+		//Serial.println();
 
 		//4. choose y or theta correction term
 		float upperLimit = 0.3, switchLimit = 0.01;
@@ -397,16 +397,16 @@ void DrivingChassis::update(float x, float y) {
 	lastAngle = getAngle(); //update the last angle
 
 	if (showIMU) {
-		Serial.println("\n\n\n<---loop(DRIVING)--->");
+		//Serial.println("\n\n\n<---loop(DRIVING)--->");
 		Serial.println(
 				"Heading: {" + String(targetX) + "," + String(targetY) + ", "
-						+ String(targetAngle) + "}\n");
+						+ String(targetAngle) + "}");
 		Serial.println(
 				"Local: {" + String(localX) + ", " + String(localY) + ", "
-						+ String(getAngle()) + "}\n");
+						+ String(getAngle()) + "}");
 		Serial.println(
 				"IMU: {" + String(IMU->getXPosition()) + ", "
-						+ String(IMU->getYPosition()) + ", " + String(IMU->getAngle()) + "}");
+						+ String(IMU->getYPosition()) + ", " + String(IMU->getAngle()) + "}\n");
 
 	}
 

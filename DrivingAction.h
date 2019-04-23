@@ -9,6 +9,7 @@
 #define DRIVINGACTION_H_
 
 #include "DrivingChassis.h"
+#include "Node.h"
 
 
 #define MS_PER_DEGREE 100
@@ -25,8 +26,10 @@ private:
 	float param;
 
 	DrivingAction *next;
+
+	Node *endNode;
 public:
-	DrivingAction(Action, float);
+	DrivingAction(Action, float, Node*);
 	virtual ~DrivingAction();
 
 
@@ -42,6 +45,10 @@ public:
 	}
 	float getValue() const {
 		return param;
+	}
+
+	Node* getEndNode() const {
+		return endNode;
 	}
 };
 

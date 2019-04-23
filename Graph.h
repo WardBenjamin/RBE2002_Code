@@ -8,9 +8,10 @@
 #ifndef GRAPH_H_
 #define GRAPH_H_
 
+
 #include "Node.h"
+#include <cmath>
 #include "CityGeometry.h"
-#include "DrivingActionManager.h"
 #include <vector>
 
 class Graph {
@@ -26,11 +27,8 @@ public:
 
 	Node* getNodeAt(int, int);
 
-	void setBestPath(DrivingActionManager*, int, int, int, int);
-
-	void pathToDrivingActions(Node*, DrivingActionManager*);
+	Node* setBestPath(int, int, int, int);
 	Node::Edge* findConnectingEdge(Node*, Node*);
-
 
 	void resetGraphCost();
 	void printGraph(int, int);

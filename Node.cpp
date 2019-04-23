@@ -75,6 +75,24 @@ void Node::printNode() {
 		Serial.println();
 }
 
+void Node::deleteEdge(int index) {
+	if(this->edges[index] != nullptr) {
+		Node *destination = this->edges[index]->destination;
+		this->edges[index] = nullptr;
+
+		if(index == SOUTH_INDEX) {
+			destination->deleteEdge(NORTH_INDEX);
+		} else if(index == NORTH_INDEX) {
+			destination->deleteEdge(SOUTH_INDEX);
+		} else if(index == EAST_INDEX) {
+			destination->deleteEdge(WEST_INDEX);
+		} else if(index == WEST_INDEX) {
+			destination->deleteEdge(EAST_INDEX);
+		}
+
+	}
+}
+
 void Node::resetCost() {
 	g = 0;
 	h = 0;

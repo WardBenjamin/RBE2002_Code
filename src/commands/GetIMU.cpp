@@ -62,6 +62,10 @@ bool GetIMU::loop() {
 
 	last = micros();
 
+	if(updateIndex == 3 && adjustAngle == 9999) {
+		setGlobalAngle();
+	}
+
 	updateIndex++;
 	if (updateIndex == 4) {
 		updateIndex = 0;

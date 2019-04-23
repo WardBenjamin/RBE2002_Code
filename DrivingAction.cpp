@@ -7,10 +7,12 @@
 
 #include "DrivingAction.h"
 
-DrivingAction::DrivingAction(Action action, float param) {
+DrivingAction::DrivingAction(Action action, float param, Node *end) {
 	this->action = action;
 	this->param = param;
 	this->next = nullptr;
+
+	this->endNode = end;
 }
 
 DrivingAction::~DrivingAction() {
@@ -30,7 +32,10 @@ void DrivingAction::perform(DrivingChassis *chassis) {
 	printDrivingAction();
 
 	if (action == TURN) {
+
 		float currentAngle = chassis->getIMU()->getAngle();
+		Serial.println(currentAngle);
+
 		float degreesToTurn = param - currentAngle;
 
 		if(degreesToTurn < 0) {

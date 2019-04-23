@@ -27,7 +27,7 @@ private:
 
 	long last = -1;
 
-	float adjustAngle;
+	float adjustAngle = 9999;
 
 public:
 	// Packet ID needs to be set

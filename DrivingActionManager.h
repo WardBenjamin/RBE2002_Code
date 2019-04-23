@@ -9,15 +9,21 @@
 #define DRIVINGACTIONMANAGER_H_
 
 #include "DrivingAction.h"
-#include "DrivingChassis.h"
+#include "Graph.h"
+#include <math.h>
+
+
 
 class DrivingActionManager {
-
 private:
 	DrivingAction *head;
 	DrivingChassis *chassis;
+
+	Graph *graph;
+
+	void pathToDrivingActions(Node*);
 public:
-	DrivingActionManager(DrivingChassis *chassis);
+	DrivingActionManager(DrivingChassis*);
 	virtual ~DrivingActionManager();
 
 	bool hasNext();
@@ -26,7 +32,12 @@ public:
 
 	void loop();
 
-	void determineBestPath();
+	void setPath(int, int, int, int);
+
+
+	Graph* getGraph() const {
+		return graph;
+	}
 };
 
 #endif /* DRIVINGACTIONMANAGER_H_ */

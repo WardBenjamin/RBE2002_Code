@@ -94,11 +94,12 @@ StudentsRobot::StudentsRobot(PIDMotor * motor1, PIDMotor * motor2,
 	//Test IO
 	pinMode(WII_CONTROLLER_DETECT, OUTPUT);
 
+	RangeFinder *rf = new RangeFinder(ANALOG_SENSE_ONE);
 
-	this->chassis = new DrivingChassis(this->motor1, this->motor2, 220, 25.4, IMU);
+	this->chassis = new DrivingChassis(rf, this->motor1, this->motor2, 220, 25.4, IMU);
 
 	this->manager = new DrivingActionManager(chassis);
-	this->graph = new Graph();
+
 }
 /**
  * Seperate from running the motor control,
@@ -116,12 +117,10 @@ void StudentsRobot::updateStateMachine() {
 
 		Serial.println("StudentsRobot::updateStateMachine StartupRobot here ");
 
-		this->graph->setBestPath(manager, 0, 0, 2, 2);
+		this->manager->setPath(0, 0, 2, 2);
 		break;
 	case StartRunning:
 		Serial.println("Start Running");
-
-
 
 		digitalWrite(H_BRIDGE_ENABLE, 1);
 		// Start an interpolation of the motors

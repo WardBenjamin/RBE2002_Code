@@ -13,7 +13,7 @@
 #define WEST_INDEX 2
 #define SOUTH_INDEX 3
 
-#include "DrivingActionManager.h"
+#include <Arduino.h>
 
 class Node {
 private:
@@ -49,14 +49,13 @@ public:
 	void setSouthernEdge(Edge*);
 	void setNorthernEdge(Edge*);
 
-	Node* createNewSouthernNode(float);
-	Node* createNewEasternNode(float);
-
 	float g, h, f;
 	Node *predecessor;
 
 	void resetCost();
 	void resetPredecessor();
+
+	void deleteEdge(int);
 
 	void printNode();
 

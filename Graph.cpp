@@ -74,7 +74,7 @@ void Graph::createGraph() {
 Node* Graph::getNodeAt(int x, int y) {
 	return nodeMap[x][y];
 }
-void Graph::setBestPath(DrivingActionManager *manager, int startX, int startY,
+Node* Graph::setBestPath(int startX, int startY,
 		int endX, int endY) {
 	resetGraphCost();
 
@@ -102,7 +102,7 @@ void Graph::setBestPath(DrivingActionManager *manager, int startX, int startY,
 		//Serial.println("Node erased from openList and place into closedList");
 
 		if (lowestCost == getNodeAt(endX, endY)) {
-			pathToDrivingActions(lowestCost, manager);
+			return lowestCost;
 		}
 
 		for (int x = 0; x < 4; x++) {
@@ -149,40 +149,9 @@ void Graph::setBestPath(DrivingActionManager *manager, int startX, int startY,
 		}
 
 	}
-
+	return nullptr;
 }
-void Graph::pathToDrivingActions(Node *end, DrivingActionManager *manager) {
-	std::vector<DrivingAction *> actions;
 
-	Node *curr = end;
-
-	curr->printNode();
-
-	while (curr != nullptr && curr->predecessor != nullptr) {
-		Node::Edge *edge = findConnectingEdge(curr->predecessor, curr);
-
-		actions.insert(actions.begin(),
-				new DrivingAction(DRIVE, edge->lengthX + edge->lengthY));
-
-		if (curr->predecessor->getEastEdge() == edge) {
-			actions.insert(actions.begin(), new DrivingAction(TURN, 90));
-		} else if (curr->predecessor->getWestEdge() == edge) {
-			actions.insert(actions.begin(), new DrivingAction(TURN, 270));
-		} else if (curr->predecessor->getNorthEdge() == edge) {
-			actions.insert(actions.begin(), new DrivingAction(TURN, 0));
-		} else if (curr->predecessor->getSouthEdge() == edge) {
-			actions.insert(actions.begin(), new DrivingAction(TURN, 180));
-		}
-		curr = curr->predecessor;
-	}
-
-	for (int x = 0; x < actions.size(); x++) {
-		manager->addDrivingAction(actions.at(x)); //add all of the items to the paths
-
-		Serial.print(String(x) + ". ");
-		actions.at(x)->printDrivingAction();
-	}
-}
 
 Node::Edge* Graph::findConnectingEdge(Node *source, Node *destination) {
 	for (int x = 0; x < 4; x++) {
