@@ -10,13 +10,15 @@
 
 #include "DrivingChassis.h"
 #include "Node.h"
+#include "Turrent.h"
+#include "Arduino.h"
 
 
-#define MS_PER_DEGREE 20
-#define MS_PER_MILIMETER 10
+#define MS_PER_DEGREE 40
+#define MS_PER_MILIMETER 20
 
 enum Action {
-	DRIVE = 0, TURN = 1
+	DRIVE = 0, TURN = 1, CHECK = 2, STOP = 3
 };
 
 class DrivingAction {
@@ -36,7 +38,7 @@ public:
 	void setNextDrivingAction(DrivingAction*);
 	DrivingAction* getNextDrivingAction();
 
-	void perform(DrivingChassis*);
+	void perform(DrivingChassis*, Turrent*);
 
 	void printDrivingAction();
 

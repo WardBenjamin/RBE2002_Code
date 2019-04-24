@@ -8,8 +8,9 @@
 #ifndef TURRENT_H_
 #define TURRENT_H_
 
-#include "StudentsRobot.h"
-#include <Stepper.h>
+#include "src/pid/PIDMotor.h"
+#include <Arduino.h>
+#include <BasicStepperDriver.h>
 
 #define FIRE_DURATION_MS 10000 // how long to fire in milliseconds
 #define FIRE_SPEED 400 //the speed in degrees per second to rotate the motor
@@ -23,7 +24,7 @@ enum TurrentState {
 class Turrent {
 private:
 	PIDMotor *firingMotor; // motor for firing
-	Stepper *stepper; //motor for turning
+	BasicStepperDriver *stepper; //motor for turning
 
 	TurrentState state;
 	long fireStartTime;
@@ -33,7 +34,7 @@ private:
 
 	void sweeping();
 public:
-	Turrent(PIDMotor*, Stepper *stepper);
+	Turrent(PIDMotor*, BasicStepperDriver *stepper);
 	virtual ~Turrent();
 
 	/**
@@ -53,10 +54,15 @@ public:
 	 */
 	void sweep();
 
+
 	/**
 	 * Called in StudentRobot should be used to update stepper and time firings
 	 */
 	void loop();
+
+	TurrentState getState() const {
+		return state;
+	}
 
 };
 

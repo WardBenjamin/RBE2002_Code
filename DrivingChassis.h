@@ -16,7 +16,7 @@
 
 #define RM_MULT 1
 #define LM_MULT -1
-
+//#define showIMU
 #define FORWARD_SPEED 400
 #define TURNING_SPEED 400
 
@@ -37,16 +37,17 @@ enum ChassisState {
  *
  * This object should manage the setting of motor setpoints to enable driving
  */
+
 class DrivingChassis {
 private:
+	long lastTime = 0;
 	PIDMotor * myleft;
 	PIDMotor * myright;
 	GetIMU * IMU;
 	float mywheelTrackMM;
 	float mywheelRadiusMM;
 
-	float targetX = 0, targetY = 0, targetTime = 0,
-			targetVelocity;
+	float targetX = 0, targetY = 0, targetTime = 0, targetVelocity;
 	float startTime, adjustAngle;
 
 	int lastLeftEncoder = 0, lastRightEncoder = 0;
@@ -57,11 +58,10 @@ private:
 
 	RangeFinder *rf;
 
-	bool isYCorrectionMode, trapzoid_debug = false, joystick_debug = false, showIMU = true, isTurning;
+	bool isYCorrectionMode, trapzoid_debug = false, joystick_debug = false,
+			isTurning;
 
 	float targetAngle;
-
-	int steps = 0;
 
 	float localX, localY;
 
@@ -107,8 +107,8 @@ public:
 	 * @param wheelTrackMM is the measurment in milimeters of the distance from the left wheel contact point to the right wheels contact point
 	 * @param wheelRadiusMM is the measurment in milimeters of the radius of the wheels
 	 */
-	DrivingChassis(RangeFinder*, PIDMotor * left, PIDMotor * right, float wheelTrackMM,
-			float wheelRadiusMM, GetIMU * imu);
+	DrivingChassis(RangeFinder*, PIDMotor * left, PIDMotor * right,
+			float wheelTrackMM, float wheelRadiusMM, GetIMU * imu);
 
 	/**
 	 * Start a drive forward action
@@ -157,14 +157,13 @@ public:
 
 	void update(float, float);
 
-
-	void setTargetX (float x){
+	void setTargetX(float x) {
 		this->targetX = x;
 	}
-	void setTargetY(float y){
+	void setTargetY(float y) {
 		this->targetY = y;
 	}
-	void setLastAngle(float angle){
+	void setLastAngle(float angle) {
 		lastAngle = angle;
 	}
 
@@ -177,7 +176,6 @@ public:
 	RangeFinder* getRangeFinder() const {
 		return rf;
 	}
-
 };
 
 #endif /* DRIVINGCHASSIS_H_ */

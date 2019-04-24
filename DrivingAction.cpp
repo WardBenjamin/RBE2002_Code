@@ -27,7 +27,7 @@ DrivingAction* DrivingAction::getNextDrivingAction() {
 	return next;
 }
 
-void DrivingAction::perform(DrivingChassis *chassis) {
+void DrivingAction::perform(DrivingChassis *chassis, Turrent *turrent) {
 	Serial.println("Performing Action: \n\t");
 	printDrivingAction();
 
@@ -37,28 +37,25 @@ void DrivingAction::perform(DrivingChassis *chassis) {
 		Serial.println(currentAngle);
 
 		float degreesToTurn = param - currentAngle;
-
-		if(degreesToTurn < 0) {
-			Serial.println("Robot should turn left.");
-		} else if(degreesToTurn > 0) {
-			Serial.println("Robot should turn right.");
-		} else {
-			Serial.println("Robot is already at the angle and thus shouldn't move");
-		}
-
 		chassis->turnDegrees(degreesToTurn, abs(degreesToTurn) * MS_PER_DEGREE);
 
-	} else if (action == DRIVE) {
+	} else if (action == Action::DRIVE) {
 		chassis->driveForward(param, param * MS_PER_MILIMETER);
+	} else if(action == Action::CHECK) {
+		turrent->checkFire();
+	} else if(action == Action::STOP) {
+		chassis->driveForward(0, param);
 	}
 }
 void DrivingAction::printDrivingAction() {
 	if (this->action == Action::TURN) {
 		Serial.print(
 				"TURN to " + String(getValue()) + " degrees\n");
-	} else {
+	} else if(action == Action::DRIVE) {
 		Serial.print(
 				"DRIVE for " + String(getValue()) + " mm\n");
+	} else if(action == Action::CHECK) {
+		Serial.print("CHECK\n");
 	}
 }
 

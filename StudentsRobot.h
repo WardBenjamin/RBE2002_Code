@@ -21,6 +21,7 @@
 #include "DrivingActionManager.h"
 
 #include "RobotGeometry.h"
+#include "BasicStepperDriver.h"
 
 /**
  * @enum RobotStateMachine
@@ -73,6 +74,7 @@ private:
 
 	DrivingChassis *chassis; // LT - (4/9/2019)
 	DrivingActionManager *manager;
+	Turrent * turrent;
 
 	Graph *graph;
 

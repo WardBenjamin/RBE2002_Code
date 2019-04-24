@@ -7,9 +7,11 @@
 
 #include "Turrent.h"
 
-Turrent::Turrent(PIDMotor *firingMotor, Stepper *stepper) {
+Turrent::Turrent(PIDMotor *firingMotor, BasicStepperDriver *stepper) {
 	this->firingMotor = firingMotor;
 	this->stepper = stepper;
+
+	this->stepper->begin(1, 1);
 
 	this->state = TurrentState::STANDBY_TURRENT;
 
@@ -30,12 +32,14 @@ void Turrent::loop() {
 		}
 	}
 
-	if(state == TurrentState::TURN_TURRENT) {
-		//Not sure in necessary but i'll keep it here for now. - LT (4/23/2019)
-	}
-
 	if(state == TurrentState::SWEEP) {
 		sweeping();
+	}
+
+	if(state == TurrentState::TURN_TURRENT) {
+		if(this->stepper->getStepsRemaining() == 0) {
+			this->state = TurrentState::STANDBY_TURRENT;
+		}
 	}
 }
 
@@ -45,7 +49,7 @@ void Turrent::fire() {
 	this->firingMotor->setVelocityDegreesPerSecond(FIRE_SPEED);
 }
 
-bool Turrent::checkFire() {
+bool Turrent::checkFire(){
 	return false;
 }
 
@@ -53,14 +57,26 @@ void Turrent::sweep() {
 	this->currentSweepSteps = 0;
 	this->state = TurrentState::SWEEP;
 	this->sweepRight = true;
+
+	this->stepper->startRotate(90);
 }
 
 void Turrent::sweeping() {
 	if(this->sweepRight) {
-		if(this->currentSweepSteps < SWEEP_STEP_RANGE) {
-			stepper->step(1); // move the stepper motor to the next position
-		} else {
-			//move the stepper motor SWEEP_STEP_RANGE steps to origin point
+		if(this->stepper->getStepsRemaining() == 0) {
+			checkFire();
+
+			this->sweepRight = false;
+			this->stepper->startRotate(-180);
+		}
+	}
+
+	if(this->sweepRight == false) {
+		if(this->stepper->getStepsRemaining() == 0) {
+			checkFire();
+			this->stepper->startRotate(90);
+
+			this->state = TurrentState::TURN_TURRENT;
 		}
 	}
 

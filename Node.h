@@ -22,6 +22,7 @@ enum NodeType {
 class Node {
 private:
 	int id;
+	bool checked;
 
 	NodeType type;
 public:
@@ -73,6 +74,11 @@ public:
 	NodeType getType() const {
 		return type;
 	}
+
+	bool isChecked() const {
+		return checked;
+	}
+	void setChecked();
 };
 
 #endif /* NODE_H_ */

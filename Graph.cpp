@@ -9,7 +9,7 @@
 
 Graph::Graph() {
 	createGraph();
-	printGraph(0, 0);
+	//printGraph(0, 0);
 }
 
 Graph::~Graph() {
@@ -20,16 +20,13 @@ void Graph::createGraph() {
 		for (int y = 0; y < 6; y++) {
 
 			if (x % 2 == 1 && y % 2 == 1) {
-				Serial.println("NULLPTR @ (" + String(x) + "," + String(y) + ")");
 				nodeMap[x][y] = nullptr;
 				continue;
 			}
 
 			if (x % 2 == 0 && y % 2 == 0) {
-				Serial.println("INTERSECTION @ (" + String(x) + "," + String(y) + ")");
 				nodeMap[x][y] = new Node(INTERSECTION);
 			} else {
-				Serial.println("MIDPOINT @ (" + String(x) + "," + String(y) + ")");
 				nodeMap[x][y] = new Node(MIDPOINT);
 			}
 
@@ -56,7 +53,7 @@ void Graph::createGraph() {
 				nodeMap[x][y]->setWesternEdge(west);
 			}
 
-			if  (y > 0 && nodeMap[x][y - 1] != nullptr) {
+			if (y > 0 && nodeMap[x][y - 1] != nullptr) {
 				Node::Edge *south = new Node::Edge;
 				south->source = nodeMap[x][y - 1];
 				south->destination = nodeMap[x][y];
@@ -139,6 +136,14 @@ Node* Graph::setBestPath(int startX, int startY, int endX, int endY) {
 									* lowestCost->edges[x]->lengthX
 									+ lowestCost->edges[x]->lengthY
 											* lowestCost->edges[x]->lengthY);
+			if(child->getType() == NodeType::MIDPOINT && child->isChecked()) {
+				child->g += sqrt(
+						lowestCost->edges[x]->lengthX
+								* lowestCost->edges[x]->lengthX
+								+ lowestCost->edges[x]->lengthY
+										* lowestCost->edges[x]->lengthY);
+			}
+
 			child->h = 0; //change later for true implementation
 			child->f = child->g + child->h;
 
@@ -177,7 +182,7 @@ void Graph::resetGraphCost() {
 	for (int x = 0; x < 6; x++) {
 		for (int y = 0; y < 6; y++) {
 
-			if(nodeMap[x][y] == nullptr) {
+			if (nodeMap[x][y] != nullptr) {
 				getNodeAt(x, y)->resetCost();
 				getNodeAt(x, y)->resetPredecessor();
 			}
@@ -186,15 +191,17 @@ void Graph::resetGraphCost() {
 }
 void Graph::printGraph(int x, int y) {
 	Serial.println("printGraph() called");
-	for(int x = 0; x < 6; x++) {
-		for(int y = 0; y < 6; y++) {
+	for (int x = 0; x < 6; x++) {
+		for (int y = 0; y < 6; y++) {
 			if (x % 2 == 1 && y % 2 == 1) {
-							continue;
+				continue;
 			}
-			if(nodeMap[x][y] == nullptr) {
-				Serial.println("(" + String(x) + ", " + String(y) + "): nullptr");
+			if (nodeMap[x][y] == nullptr) {
+				Serial.println(
+						"(" + String(x) + ", " + String(y) + "): nullptr");
+			} else {
+				nodeMap[x][y]->printNode();
 			}
-			nodeMap[x][y]->printNode();
 		}
 	}
 }

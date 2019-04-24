@@ -19,6 +19,13 @@ Node::Node(NodeType type) {
 	edges[3] = nullptr;
 
 	this->type = type;
+
+	this->predecessor = nullptr;
+	this->checked = false;
+
+	this->f = 0;
+	this->g = 0;
+	this->h = 0;
 }
 
 Node::~Node() {
@@ -102,4 +109,7 @@ void Node::resetCost() {
 }
 void Node::resetPredecessor() {
 	predecessor = nullptr;
+}
+void Node::setChecked() {
+	this->checked = true;
 }

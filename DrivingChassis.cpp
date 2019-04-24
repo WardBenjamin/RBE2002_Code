@@ -60,8 +60,9 @@ DrivingChassis::~DrivingChassis() {
  * @param wheelTrackMM is the measurment in milimeters of the distance from the left wheel contact point to the right wheels contact point
  * @param wheelRadiusMM is the measurment in milimeters of the radius of the wheels
  */
-DrivingChassis::DrivingChassis(RangeFinder *rf, PIDMotor * left, PIDMotor * right,
-		float wheelTrackMM, float wheelRadiusMM, GetIMU * imu) {
+DrivingChassis::DrivingChassis(RangeFinder *rf, PIDMotor * left,
+		PIDMotor * right, float wheelTrackMM, float wheelRadiusMM,
+		GetIMU * imu) {
 
 	this->IMU = imu;
 	this->rf = rf;
@@ -83,6 +84,16 @@ DrivingChassis::DrivingChassis(RangeFinder *rf, PIDMotor * left, PIDMotor * righ
 
 	this->targetAngle = 180;
 	this->adjustAngle = -0;
+
+	localX = 0;
+	localY = 0;
+
+	lastAngle = 0;
+	startTime = 0;
+	adjustAngle = 0;
+
+	isTurning = false;
+	targetVelocity = 0;
 
 	IMU->setXPosition(0);
 	IMU->setYPosition(0);
@@ -201,8 +212,20 @@ bool DrivingChassis::isChassisDoneDriving() {
  * @note This will most likely be where should implement Kevin's algorithm for Lab 4.
  */
 void DrivingChassis::loop() {
+	if (millis() - lastTime > 50) {
+		lastTime = millis();
+	} else {
+		return;
+	}
 
 	if (state == DRIVING) {
+
+
+		if(targetX == 0 && targetY == 0) {
+
+			myleft->stop();
+			myright->stop();
+		}
 
 		if (adjustAngle == -0) {
 			setAngleAdjustment(180);
@@ -250,16 +273,15 @@ void DrivingChassis::loop() {
 
 		float yOut = yPID->calc(sineTargetY, y);
 		/*Serial.println(
-				"\tyPID->calc(" + String(sineTargetY) + ", " + String(y)
-						+ ") = " + String(yOut));*/
+		 "\tyPID->calc(" + String(sineTargetY) + ", " + String(y)
+		 + ") = " + String(yOut));*/
 
 		float angleOut = anglePID->calc(targetAngle, getAngle()); //remove angle toggle point by subtracting 150
 		/*Serial.println(
-				"\tanglePID->calc(" + String(targetAngle) + ", "
-						+ String(getAngle()) + ") = " + String(angleOut));*/
+		 "\tanglePID->calc(" + String(targetAngle) + ", "
+		 + String(getAngle()) + ") = " + String(angleOut));*/
 
-		Serial.println();
-
+		//.println();
 		//4. choose y or theta correction term
 		float upperLimit = 0.3, switchLimit = 0.01;
 
@@ -387,7 +409,6 @@ void DrivingChassis::update(float x, float y) {
 	float changeX = y - localY;
 	float changeY = x - localX; //remeber x and y are flipped
 
-
 	float distance = sqrt(changeX * changeX + changeY * changeY);
 
 	IMU->addToXPosition(sin(radians(IMU->getAngle())) * distance);
@@ -400,18 +421,18 @@ void DrivingChassis::update(float x, float y) {
 	lastRightEncoder = myright->getPosition();
 	lastAngle = getAngle(); //update the last angle
 
-	if (showIMU) {
+#if defined(showIMU)
 
-		Serial.println(
-				"Heading: {" + String(targetX) + "," + String(targetY) + ", "
-						+ String(targetAngle) + "}");
-		Serial.println(
-				"Local: {" + String(localX) + ", " + String(localY) + ", "
-						+ String(getAngle()) + "}");
-		Serial.println(
-				"IMU: {" + String(IMU->getXPosition()) + ", "
-						+ String(IMU->getYPosition()) + ", " + String(IMU->getAngle()) + "}\n");
+	Serial.println(
+			"Heading: {" + String(targetX) + "," + String(targetY) + ", "
+					+ String(targetAngle) + "}");
+	Serial.println(
+			"Local: {" + String(localX) + ", " + String(localY) + ", "
+					+ String(getAngle()) + "}");
+	Serial.println(
+			"IMU: {" + String(IMU->getXPosition()) + ", "
+					+ String(IMU->getYPosition()) + ", "
+					+ String(IMU->getAngle()) + "}\n");
 
-	}
-
+#endif
 }

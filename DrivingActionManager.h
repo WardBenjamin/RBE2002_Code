@@ -11,6 +11,7 @@
 #include "DrivingAction.h"
 #include "Graph.h"
 #include <math.h>
+#include "Turrent.h"
 
 
 
@@ -21,9 +22,13 @@ private:
 
 	Graph *graph;
 
+	Turrent *turrent;
+
+	long lastTime = 0;
+
 	void pathToDrivingActions(Node*);
 public:
-	DrivingActionManager(DrivingChassis*);
+	DrivingActionManager(DrivingChassis*, Turrent*);
 	virtual ~DrivingActionManager();
 
 	bool hasNext();
@@ -31,6 +36,8 @@ public:
 	void performNextAction();
 
 	void loop();
+
+	void scout(Node *);
 
 	void setPath(int, int, int, int);
 

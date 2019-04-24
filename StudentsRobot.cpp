@@ -97,8 +97,9 @@ StudentsRobot::StudentsRobot(PIDMotor * motor1, PIDMotor * motor2,
 	RangeFinder *rf = new RangeFinder(ANALOG_SENSE_ONE);
 
 	this->chassis = new DrivingChassis(rf, this->motor1, this->motor2, 220, 25.4, IMU);
+	this->turrent = new Turrent(this->motor3, new BasicStepperDriver(200, STEPPER_DIRECTION, STEPPER_STEP));
 
-	this->manager = new DrivingActionManager(chassis);
+	this->manager = new DrivingActionManager(chassis, turrent);
 
 }
 /**
@@ -112,12 +113,12 @@ void StudentsRobot::updateStateMachine() {
 
 	switch (status) {
 	case StartupRobot:
+
+		this->manager->scout(this->manager->getGraph()->getNodeAt(0,0));
 		//Do this once at startup
 		status = StartRunning;
 
 		Serial.println("StudentsRobot::updateStateMachine StartupRobot here ");
-
-		this->manager->setPath(0, 0, 2, 2);
 		break;
 	case StartRunning:
 		Serial.println("Start Running");
@@ -154,12 +155,9 @@ void StudentsRobot::updateStateMachine() {
 
 		}
 
-		this->manager->loop(); // maybe this goes here? LT - (4/9/2019)
 
 		break;
 	case WAIT_FOR_TIME:
-
-		this->manager->loop(); // maybe this goes here? LT - (4/9/2019)
 		// Check to see if enough time has elapsed
 		if (nextTime <= millis()) {
 			// if the time is up, move on to the next state
@@ -200,6 +198,10 @@ void StudentsRobot::pidLoop() {
 	motor1->loop();
 	motor2->loop();
 	motor3->loop();
+
+	if(status == Running || status == WAIT_FOR_TIME)
+		this->manager->loop(); // maybe this goes here? LT - (4/9/2019)
+
 }
 
 
