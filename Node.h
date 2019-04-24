@@ -15,9 +15,15 @@
 
 #include <Arduino.h>
 
+enum NodeType {
+	INTERSECTION, MIDPOINT
+};
+
 class Node {
 private:
 	int id;
+
+	NodeType type;
 public:
 	struct Edge {
 		float lengthX = 0, lengthY = 0;
@@ -26,7 +32,7 @@ public:
 
 	static int nodeID;
 
-	Node();
+	Node(NodeType);
 	virtual ~Node();
 
 	Edge *edges[4];
@@ -62,6 +68,10 @@ public:
 	void setID(int);
 	int getID() const {
 		return id;
+	}
+
+	NodeType getType() const {
+		return type;
 	}
 };
 

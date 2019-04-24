@@ -9,19 +9,31 @@
 
 Graph::Graph() {
 	createGraph();
-	//printGraph(0, 0);
+	printGraph(0, 0);
 }
 
 Graph::~Graph() {
 }
 
 void Graph::createGraph() {
-	for (int x = 0; x < 4; x++) {
+	for (int x = 0; x < 6; x++) {
+		for (int y = 0; y < 6; y++) {
 
-		for (int y = 0; y < 4; y++) {
-			nodeMap[x][y] = new Node();
+			if (x % 2 == 1 && y % 2 == 1) {
+				Serial.println("NULLPTR @ (" + String(x) + "," + String(y) + ")");
+				nodeMap[x][y] = nullptr;
+				continue;
+			}
 
-			if (x > 0 && x < 3) {
+			if (x % 2 == 0 && y % 2 == 0) {
+				Serial.println("INTERSECTION @ (" + String(x) + "," + String(y) + ")");
+				nodeMap[x][y] = new Node(INTERSECTION);
+			} else {
+				Serial.println("MIDPOINT @ (" + String(x) + "," + String(y) + ")");
+				nodeMap[x][y] = new Node(MIDPOINT);
+			}
+
+			if (x > 0 && nodeMap[x - 1][y] != nullptr) {
 				Node::Edge *east = new Node::Edge;
 				east->source = nodeMap[x - 1][y];
 				east->destination = nodeMap[x][y];
@@ -30,10 +42,10 @@ void Graph::createGraph() {
 				west->source = nodeMap[x][y];
 				west->destination = nodeMap[x - 1][y];
 
-				if (x == 1) {
-					east->lengthX = START_TO_INTESECTION_DIST;
-				} else if (x == 2) {
-					east->lengthX = LENGTH_BETWEEN_TO_INTERSECTIONS;
+				if (x == 1 || x == 2) {
+					east->lengthX = START_TO_INTESECTION_DIST / 2;
+				} else if (x == 3 || x == 4) {
+					east->lengthX = LENGTH_BETWEEN_TO_INTERSECTIONS / 2;
 				} else {
 					east->lengthX = LEAD_ROADS_LENGTH;
 				}
@@ -43,7 +55,8 @@ void Graph::createGraph() {
 				nodeMap[x - 1][y]->setEasternEdge(east);
 				nodeMap[x][y]->setWesternEdge(west);
 			}
-			if (y > 0 && y < 3) {
+
+			if  (y > 0 && nodeMap[x][y - 1] != nullptr) {
 				Node::Edge *south = new Node::Edge;
 				south->source = nodeMap[x][y - 1];
 				south->destination = nodeMap[x][y];
@@ -52,10 +65,10 @@ void Graph::createGraph() {
 				north->source = nodeMap[x][y];
 				north->destination = nodeMap[x][y - 1];
 
-				if (y == 1) {
-					south->lengthY = START_TO_INTESECTION_DIST;
-				} else if (y == 2) {
-					south->lengthY = LENGTH_BETWEEN_TO_INTERSECTIONS;
+				if (y == 1 || y == 2) {
+					south->lengthY = START_TO_INTESECTION_DIST / 2;
+				} else if (y == 3 || y == 4) {
+					south->lengthY = LENGTH_BETWEEN_TO_INTERSECTIONS / 2;
 				} else {
 					south->lengthY = LEAD_ROADS_LENGTH;
 				}
@@ -65,17 +78,14 @@ void Graph::createGraph() {
 				nodeMap[x][y - 1]->setSouthernEdge(south);
 				nodeMap[x][y]->setNorthernEdge(north);
 			}
+
 		}
 	}
-
-	startNode = nodeMap[0][0];
-
 }
 Node* Graph::getNodeAt(int x, int y) {
 	return nodeMap[x][y];
 }
-Node* Graph::setBestPath(int startX, int startY,
-		int endX, int endY) {
+Node* Graph::setBestPath(int startX, int startY, int endX, int endY) {
 	resetGraphCost();
 
 	std::vector<Node*> openList;
@@ -152,7 +162,6 @@ Node* Graph::setBestPath(int startX, int startY,
 	return nullptr;
 }
 
-
 Node::Edge* Graph::findConnectingEdge(Node *source, Node *destination) {
 	for (int x = 0; x < 4; x++) {
 		if (source->edges[x] != nullptr
@@ -165,21 +174,27 @@ Node::Edge* Graph::findConnectingEdge(Node *source, Node *destination) {
 }
 
 void Graph::resetGraphCost() {
-	for (int x = 0; x < 4; x++) {
-		for (int y = 0; y < 4; y++) {
-			getNodeAt(x, y)->resetCost();
-			getNodeAt(x, y)->resetPredecessor();
+	for (int x = 0; x < 6; x++) {
+		for (int y = 0; y < 6; y++) {
+
+			if(nodeMap[x][y] == nullptr) {
+				getNodeAt(x, y)->resetCost();
+				getNodeAt(x, y)->resetPredecessor();
+			}
 		}
 	}
 }
 void Graph::printGraph(int x, int y) {
-	Node *node = getNodeAt(x, y);
-
-	node->printNode();
-
-	if (x < 3) {
-		return printGraph(x + 1, y);
-	} else if (y < 3) {
-		return printGraph(0, y + 1);
+	Serial.println("printGraph() called");
+	for(int x = 0; x < 6; x++) {
+		for(int y = 0; y < 6; y++) {
+			if (x % 2 == 1 && y % 2 == 1) {
+							continue;
+			}
+			if(nodeMap[x][y] == nullptr) {
+				Serial.println("(" + String(x) + ", " + String(y) + "): nullptr");
+			}
+			nodeMap[x][y]->printNode();
+		}
 	}
 }

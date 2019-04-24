@@ -9,7 +9,7 @@
 
 int Node::nodeID = 0;
 
-Node::Node() {
+Node::Node(NodeType type) {
 	id = nodeID;
 	nodeID++;
 
@@ -17,6 +17,8 @@ Node::Node() {
 	edges[1] = nullptr;
 	edges[2] = nullptr;
 	edges[3] = nullptr;
+
+	this->type = type;
 }
 
 Node::~Node() {

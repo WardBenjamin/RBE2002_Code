@@ -18,7 +18,7 @@ class Graph {
 private:
 	Node *startNode;
 
-	Node *nodeMap[4][4];
+	Node *nodeMap[6][6];
 public:
 	Graph();
 	virtual ~Graph();
