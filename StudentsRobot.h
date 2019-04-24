@@ -76,6 +76,8 @@ private:
 	DrivingActionManager *manager;
 	Turrent * turrent;
 
+	bool loaded = false;
+
 	Graph *graph;
 
 public:

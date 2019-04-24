@@ -93,60 +93,14 @@ void DrivingActionManager::pathToDrivingActions(Node *end) {
 
 	Node *curr = end;
 
-	curr->printNode();
+	//curr->printNode();
 
 	while (curr != nullptr && curr->predecessor != nullptr) {
 		Node::Edge *edge = graph->findConnectingEdge(curr->predecessor, curr);
 
 		if (curr->getType() == MIDPOINT) {
-
-			if (curr->predecessor->getEastEdge() == edge
-					|| curr->predecessor->getWestEdge() == edge) {
-				actions.insert(actions.begin(),
-									new DrivingAction(STOP, 300, curr->predecessor));
-
-
-				actions.insert(actions.begin(),
-						new DrivingAction(Action::CHECK, 0, curr));
-
-				actions.insert(actions.begin(),
-						new DrivingAction(TURN, 360, curr->predecessor));
-
-				actions.insert(actions.begin(),
-						new DrivingAction(STOP, 300, curr->predecessor));
-
-				actions.insert(actions.begin(),
-						new DrivingAction(Action::CHECK, 0, curr));
-				actions.insert(actions.begin(),
-										new DrivingAction(STOP, 300, curr->predecessor));
-				actions.insert(actions.begin(),
-						new DrivingAction(TURN, 180, curr->predecessor));
-				actions.insert(actions.begin(),
-						new DrivingAction(STOP, 300, curr->predecessor));
-
-			} else {
-				actions.insert(actions.begin(),
-									new DrivingAction(STOP, 300, curr->predecessor));
-
-				actions.insert(actions.begin(),
-						new DrivingAction(Action::CHECK, 0, curr));
-				actions.insert(actions.begin(),
-										new DrivingAction(STOP, 300, curr->predecessor));
-				actions.insert(actions.begin(),
-						new DrivingAction(TURN, 90, curr->predecessor));
-				actions.insert(actions.begin(),
-						new DrivingAction(STOP, 300, curr->predecessor));
-				actions.insert(actions.begin(),
-						new DrivingAction(Action::CHECK, 0, curr));
-				actions.insert(actions.begin(),
-										new DrivingAction(STOP, 300, curr->predecessor));
-				actions.insert(actions.begin(),
-						new DrivingAction(TURN, 270, curr->predecessor));
-				actions.insert(actions.begin(),
-						new DrivingAction(STOP, 300, curr->predecessor));
-
-			}
-
+			actions.insert(actions.begin(),
+					new DrivingAction(Action::CHECK, 0, curr));
 		}
 
 		actions.insert(actions.begin(),
@@ -179,7 +133,7 @@ void DrivingActionManager::pathToDrivingActions(Node *end) {
 void DrivingActionManager::setPath(int xStart, int yStart, int xEnd, int yEnd) {
 	this->head = nullptr; //clear the previous path
 
-	Node *end = this->graph->setBestPath(xStart, yStart, xEnd, yEnd);
+	Node *end = this->graph->setBestPath(xStart, yStart, yEnd, xEnd);
 	pathToDrivingActions(end);
 }
 void DrivingActionManager::scout(Node *startNode) {
@@ -202,7 +156,7 @@ void DrivingActionManager::scout(Node *startNode) {
 	}
 
 	bool found = false;
-	for (int x = 0; x < 6; x++) {
+	for (int x = 0; x < 6 && !found; x++) {
 		for (int y = 0; y < 6; y++) {
 			if (graph->getNodeAt(x, y) != nullptr
 					&& !graph->getNodeAt(x, y)->isChecked()
@@ -211,33 +165,33 @@ void DrivingActionManager::scout(Node *startNode) {
 				break;
 			}
 		}
+	}
 
-		if (found) {
-			int newX = -1, newY = -1;
+	if (found) {
+		int newX = -1, newY = -1;
 
-			while (newX == -1) {
-				int xIndex = rand() % 6;
-				int yIndex = rand() % 6;
+		while (newX == -1) {
+			int xIndex = rand() % 6;
+			int yIndex = rand() % 6;
 
-				if (graph->getNodeAt(xIndex, yIndex) != nullptr
-						&& !graph->getNodeAt(xIndex, yIndex)->isChecked()
-						&& graph->getNodeAt(xIndex, yIndex)->getType()
-								== MIDPOINT) {
-					newX = xIndex;
-					newY = yIndex;
+			if (graph->getNodeAt(xIndex, yIndex) != nullptr
+					&& !graph->getNodeAt(xIndex, yIndex)->isChecked()
+					&& graph->getNodeAt(xIndex, yIndex)->getType()
+							== MIDPOINT) {
+				newX = xIndex;
+				newY = yIndex;
 
-					break;
-				}
-
+				break;
 			}
 
-			Serial.println(
-					"scout(" + String(currX) + "," + String(currY) + ","
-							+ String(newX) + "," + String(newY) + ")");
-			this->setPath(currX, currY, newX, newY);
-		} else {
-			this->setPath(currX, currY, 0, 0);
 		}
+
+		/*Serial.println(
+		 "scout(" + String(currX) + "," + String(currY) + ","
+		 + String(newX) + "," + String(newY) + ")");*/
+		this->setPath(currX, currY, newX, newY);
+	} else {
+		this->setPath(currX, currY, 0, 0);
 	}
 
 // need to move to the manager class

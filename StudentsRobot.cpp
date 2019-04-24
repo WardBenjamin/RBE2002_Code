@@ -101,6 +101,8 @@ StudentsRobot::StudentsRobot(PIDMotor * motor1, PIDMotor * motor2,
 
 	this->manager = new DrivingActionManager(chassis, turrent);
 
+	this->loaded = false;
+
 }
 /**
  * Seperate from running the motor control,
@@ -114,7 +116,11 @@ void StudentsRobot::updateStateMachine() {
 	switch (status) {
 	case StartupRobot:
 
-		this->manager->scout(this->manager->getGraph()->getNodeAt(0,0));
+		if(!loaded) {
+			//this->manager->scout(this->manager->getGraph()->getNodeAt(0,0));
+			this->manager->setPath(0, 0, 2, 3);
+			loaded = false;
+		}
 		//Do this once at startup
 		status = StartRunning;
 

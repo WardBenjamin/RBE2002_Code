@@ -18,7 +18,7 @@
 #define MS_PER_MILIMETER 20
 
 enum Action {
-	DRIVE = 0, TURN = 1, CHECK = 2, STOP = 3
+	DRIVE = 0, TURN = 1, CHECK = 2, POLAR = 3;
 };
 
 class DrivingAction {

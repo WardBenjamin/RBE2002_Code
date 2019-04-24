@@ -111,6 +111,16 @@ DrivingChassis::DrivingChassis(RangeFinder *rf, PIDMotor * left,
  * 		 allow for relative moves. Otherwise the motor is always in ABSOLUTE mode
  */
 void DrivingChassis::driveForward(float mmDistanceFromCurrent, int msDuration) {
+	if(resetAngle || absFloat(IMU->getAngle() - lastDriveAngle) > 5) {
+
+		Serial.println("[DrivingChassis] localY = 0. currentAngle: " + String(IMU->getAngle()) + "\t lastAngle: " + String(lastDriveAngle));
+		localY = 0;
+		resetAngle = false;
+	} else {
+
+		Serial.println("[DrivingChassis] No localY reset. currentAngle: " + String(IMU->getAngle()) + ", lastAngle: " + String(lastDriveAngle));
+	}
+
 	this->targetTime = msDuration;
 
 	targetX = mmDistanceFromCurrent;
@@ -118,7 +128,6 @@ void DrivingChassis::driveForward(float mmDistanceFromCurrent, int msDuration) {
 	targetAngle = 180;
 
 	localX = 0;
-	localY = 0;
 
 	this->myleft->overrideCurrentPosition(0);
 	this->myright->overrideCurrentPosition(0);
@@ -129,13 +138,10 @@ void DrivingChassis::driveForward(float mmDistanceFromCurrent, int msDuration) {
 
 	isTurning = false;
 
-	/*this->xPID->setpid(0.05, 0, 0);
-	 this->yPID->setpid(0.10, 0, 0.01);
-	 this->anglePID->setpid(0.1, 0, 0.01);*/
-
 	this->xPID->setpid(0.08, 0, 0);
 	this->yPID->setpid(0.03, 0, 0.01);
 	this->anglePID->setpid(0.08, 0, 0.01);
+
 	this->xPID->clearIntegralBuffer();
 	this->yPID->clearIntegralBuffer();
 	this->anglePID->clearIntegralBuffer();
@@ -162,13 +168,14 @@ void DrivingChassis::driveForward(float mmDistanceFromCurrent, int msDuration) {
  * 		 allow for relative moves. Otherwise the motor is always in ABSOLUTE mode
  */
 void DrivingChassis::turnDegrees(float degreesToRotateBase, int msDuration) {
+	if(absFloat(degreesToRotateBase) > 5) {
+		resetAngle = true;
+	}
+
 	this->targetTime = msDuration;
 
 	targetX = 0;
 	targetY = 0;
-
-	localX = 0;
-	localY = 0;
 
 	this->myleft->overrideCurrentPosition(0);
 	this->myright->overrideCurrentPosition(0);
@@ -220,13 +227,6 @@ void DrivingChassis::loop() {
 
 	if (state == DRIVING) {
 
-
-		if(targetX == 0 && targetY == 0) {
-
-			myleft->stop();
-			myright->stop();
-		}
-
 		if (adjustAngle == -0) {
 			setAngleAdjustment(180);
 		}
@@ -258,10 +258,10 @@ void DrivingChassis::loop() {
 		if (elapsed == 1 || sineTerm == 1) { //need to add back sineTem term
 			state = DONE;
 
-			Serial.println("DONE!");
-
 			myleft->stop();
 			myright->stop();
+
+			lastDriveAngle = IMU->getAngle();
 
 			return;
 		}
@@ -406,33 +406,36 @@ float* DrivingChassis::joystick_algorithm(float powerTerm, float turningTerm) {
 
 void DrivingChassis::update(float x, float y) {
 
-	float changeX = y - localY;
-	float changeY = x - localX; //remeber x and y are flipped
+	if (!isTurning) {
 
-	float distance = sqrt(changeX * changeX + changeY * changeY);
+		float changeX = y - localY;
+		float changeY = x - localX; //remeber x and y are flipped
 
-	IMU->addToXPosition(sin(radians(IMU->getAngle())) * distance);
-	IMU->addToYPosition(cos(radians(IMU->getAngle())) * distance);
+		float distance = sqrt(changeX * changeX + changeY * changeY);
 
-	localX = x;
-	localY = y;
+		IMU->addToXPosition(sin(radians(IMU->getAngle())) * distance);
+		IMU->addToYPosition(cos(radians(IMU->getAngle())) * distance);
 
-	lastLeftEncoder = myleft->getPosition();
-	lastRightEncoder = myright->getPosition();
+		localX = x;
+		localY = y;
+
+		lastLeftEncoder = myleft->getPosition();
+		lastRightEncoder = myright->getPosition();
+	}
 	lastAngle = getAngle(); //update the last angle
 
 #if defined(showIMU)
 
 	Serial.println(
 			"Heading: {" + String(targetX) + "," + String(targetY) + ", "
-					+ String(targetAngle) + "}");
+			+ String(targetAngle) + "}");
 	Serial.println(
 			"Local: {" + String(localX) + ", " + String(localY) + ", "
-					+ String(getAngle()) + "}");
+			+ String(getAngle()) + "}");
 	Serial.println(
 			"IMU: {" + String(IMU->getXPosition()) + ", "
-					+ String(IMU->getYPosition()) + ", "
-					+ String(IMU->getAngle()) + "}\n");
+			+ String(IMU->getYPosition()) + ", "
+			+ String(IMU->getAngle()) + "}\n");
 
 #endif
 }

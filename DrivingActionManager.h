@@ -26,6 +26,8 @@ private:
 
 	long lastTime = 0;
 
+	bool loading = false;
+
 	void pathToDrivingActions(Node*);
 public:
 	DrivingActionManager(DrivingChassis*, Turrent*);

@@ -48,11 +48,15 @@ private:
 	float mywheelRadiusMM;
 
 	float targetX = 0, targetY = 0, targetTime = 0, targetVelocity;
-	float startTime, adjustAngle;
+	float startTime = 0, adjustAngle = 0;
+
+	float lastDriveAngle = 0;
+
+	float resetAngle = true;
 
 	int lastLeftEncoder = 0, lastRightEncoder = 0;
 
-	float lastAngle = 0;
+	float lastAngle = -0;
 
 	RBEPID *xPID, *yPID, *anglePID;
 
@@ -62,6 +66,11 @@ private:
 			isTurning;
 
 	float targetAngle;
+
+
+	bool firstInstruction = 0;
+	float lastPolarAngle = 0;
+	float lastPolarDistance = 0;
 
 	float localX, localY;
 
@@ -176,6 +185,8 @@ public:
 	RangeFinder* getRangeFinder() const {
 		return rf;
 	}
+
+	void polarMove(float, float, float, float);
 };
 
 #endif /* DRIVINGCHASSIS_H_ */
