@@ -68,7 +68,7 @@ private:
 	float targetAngle;
 
 
-	bool firstInstruction = 0;
+	bool firstInstruction = true;
 	float lastPolarAngle = 0;
 	float lastPolarDistance = 0;
 
@@ -185,8 +185,6 @@ public:
 	RangeFinder* getRangeFinder() const {
 		return rf;
 	}
-
-	void polarMove(float, float, float, float);
 };
 
 #endif /* DRIVINGCHASSIS_H_ */

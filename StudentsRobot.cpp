@@ -94,7 +94,7 @@ StudentsRobot::StudentsRobot(PIDMotor * motor1, PIDMotor * motor2,
 	//Test IO
 	pinMode(WII_CONTROLLER_DETECT, OUTPUT);
 
-	RangeFinder *rf = new RangeFinder(ANALOG_SENSE_ONE);
+	rf = new RangeFinder(ANALOG_SENSE_TWO);
 
 	this->chassis = new DrivingChassis(rf, this->motor1, this->motor2, 220, 25.4, IMU);
 	this->turrent = new Turrent(this->motor3, new BasicStepperDriver(200, STEPPER_DIRECTION, STEPPER_STEP));

@@ -27,6 +27,8 @@ public:
 
 	Node* getNodeAt(int, int);
 
+	int* getNodeCoordinates(Node *);
+
 	Node* setBestPath(int, int, int, int);
 	Node::Edge* findConnectingEdge(Node*, Node*);
 

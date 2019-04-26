@@ -80,6 +80,8 @@ private:
 
 	Graph *graph;
 
+	RangeFinder *rf;
+
 public:
 
 	DrivingChassis* getChassis() const {return chassis;}

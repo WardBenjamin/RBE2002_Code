@@ -37,7 +37,6 @@ void IRCamSimplePacketComsServer::loop() {
 			bufferCache[(i * 2) + 1] = ((float) camera->readY(i));	///1024.0;
 			//bufferCache[(i * 2) + 1] = bufferCache[(i * 2) + 1]>0?23.0/bufferCache[(i * 2) + 1]:0;
 		}
-		//Serial.println("time taken: " + String(micros() - now));
 
 		last = micros();
 	}else{

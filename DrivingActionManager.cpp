@@ -43,22 +43,44 @@ void DrivingActionManager::performNextAction() {
 			&& !isinf(this->chassis->getIMU()->getAngle())) {
 		DrivingAction* new_head = head->getNextDrivingAction();
 
-		if (head->getAction() == Action::DRIVE) {
-			//check for the roadblock to make sure that it is safe
-			float forwardDistance =
-					this->chassis->getRangeFinder()->readSensorMM();
+		if (head->getAction() == Action::DRIVE && this->chassis->getRangeFinder()->isRoadblock()) {
+				Serial.println("[DrivingActionManager] Roadblock detected");
 
-			/*if(forwardDistance < head->getValue() + 10) { //there is probably a road block
-			 Serial.println("Roadblock detected");
+				Node *badNode = head->getEndNode();
+				Node *startNode = badNode->predecessor;
 
-			 Node *badNode = head->getEndNode();
+				for (int x = 0; x < 4; x++) {
+					if (startNode->edges[x] != nullptr
+							&& startNode->edges[x]->destination == badNode) {
+						startNode->deleteEdge(x); //delete the edge with the roadblock
+						break;
+					}
+				}
 
-			 badNode->deleteEdge(NORTH_INDEX);
-			 badNode->deleteEdge(SOUTH_INDEX);
-			 badNode->deleteEdge(WEST_INDEX);
-			 badNode->deleteEdge(EAST_INDEX);
+				int *startCoords = graph->getNodeCoordinates(startNode);
 
-			 }*/
+				DrivingAction *endAction = head;
+
+				while (endAction->getNextDrivingAction() != nullptr) {
+					endAction = endAction->getNextDrivingAction();
+				}
+
+				int *endCoords = graph->getNodeCoordinates(
+						endAction->getEndNode());
+
+				Serial.println(
+						"[DrivingActionManager] Recalculating path from ("
+								+ String(startCoords[0]) + ", "
+								+ String(startCoords[1]) + ") Node #"
+								+ String(startNode->getID()) + " to ("
+								+ String(endCoords[0]) + ", "
+								+ String(endCoords[1]) + ") Node #"
+								+ String(endAction->getEndNode()->getID()));
+
+				this->setPath(startCoords[0], startCoords[1], endCoords[0],
+						endCoords[1]);
+
+				return;
 		}
 
 		head->perform(this->chassis, turrent);
@@ -133,27 +155,16 @@ void DrivingActionManager::pathToDrivingActions(Node *end) {
 void DrivingActionManager::setPath(int xStart, int yStart, int xEnd, int yEnd) {
 	this->head = nullptr; //clear the previous path
 
-	Node *end = this->graph->setBestPath(xStart, yStart, yEnd, xEnd);
+	Node *end = this->graph->setBestPath(xStart, yStart, xEnd, yEnd);
 	pathToDrivingActions(end);
 }
 void DrivingActionManager::scout(Node *startNode) {
 	int currX = -1, currY = -1;
 
-	for (int x = 0; x < 6; x++) {
-		for (int y = 0; y < 6; y++) {
-			if (graph->getNodeAt(x, y) != nullptr
-					&& graph->getNodeAt(x, y) == startNode) {
-				currX = x;
-				currY = y;
+	int *coords = graph->getNodeCoordinates(startNode);
 
-				break;
-			}
-		}
-
-		if (currX != -1) {
-			break;
-		}
-	}
+	currX = coords[0];
+	currY = coords[1];
 
 	bool found = false;
 	for (int x = 0; x < 6 && !found; x++) {

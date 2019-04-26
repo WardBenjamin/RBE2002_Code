@@ -9,6 +9,7 @@
 #define RANGEFINDER_H_
 
 #include "Arduino.h"
+#include <driver/adc.h>
 
 class RangeFinder {
 private:
@@ -18,6 +19,7 @@ public:
 	virtual ~RangeFinder();
 
 	float readSensorMM();
+	bool isRoadblock();
 };
 
 #endif /* RANGEFINDER_H_ */

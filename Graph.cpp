@@ -136,7 +136,7 @@ Node* Graph::setBestPath(int startX, int startY, int endX, int endY) {
 									* lowestCost->edges[x]->lengthX
 									+ lowestCost->edges[x]->lengthY
 											* lowestCost->edges[x]->lengthY);
-			if(child->getType() == NodeType::MIDPOINT && child->isChecked()) {
+			if (child->getType() == NodeType::MIDPOINT && child->isChecked()) {
 				child->g += sqrt(
 						lowestCost->edges[x]->lengthX
 								* lowestCost->edges[x]->lengthX
@@ -204,4 +204,22 @@ void Graph::printGraph(int x, int y) {
 			}
 		}
 	}
+}
+int* Graph::getNodeCoordinates(Node *node) {
+	int *coords = nullptr;
+
+	for (int x = 0; x < 6; x++) {
+		for (int y = 0; y < 6; y++) {
+			if (nodeMap[x][y] != nullptr && node != nullptr
+					&& node == nodeMap[x][y]) {
+				coords = new int[2];
+				coords[0] = x;
+				coords[1] = y;
+
+				return coords;
+			}
+		}
+	}
+
+	return coords;
 }

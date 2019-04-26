@@ -119,6 +119,10 @@ void DrivingChassis::driveForward(float mmDistanceFromCurrent, int msDuration) {
 	} else {
 
 		Serial.println("[DrivingChassis] No localY reset. currentAngle: " + String(IMU->getAngle()) + ", lastAngle: " + String(lastDriveAngle));
+
+		if(targetAngle != 180) {
+
+		}
 	}
 
 	this->targetTime = msDuration;
@@ -338,16 +342,13 @@ float DrivingChassis::getAngle() {
 		return angle + 360;
 	return angle;
 }
-
 void DrivingChassis::setAngleAdjustment(float angle) {
 	adjustAngle = angle - IMU->getEULER_azimuth();
 	lastAngle = getAngle();
 }
-
 float DrivingChassis::getDistanceFromTicks(float ticks) {
 	return (ticks / 3200.0) * (2 * PI * this->mywheelRadiusMM);
 }
-
 float* DrivingChassis::trapzoid_approx(float leftMotorTicks,
 		float rightMotorTicks) {
 	float distanceLeft = leftMotorTicks - lastLeftEncoder;
@@ -403,7 +404,6 @@ float* DrivingChassis::joystick_algorithm(float powerTerm, float turningTerm) {
 
 	return motorPowers;
 }
-
 void DrivingChassis::update(float x, float y) {
 
 	if (!isTurning) {
