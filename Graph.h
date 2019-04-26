@@ -36,6 +36,8 @@ public:
 	void printGraph(int, int);
 
 
+	String getNodeStreetAddress(Node*, int);
+
 };
 
 #endif /* GRAPH_H_ */

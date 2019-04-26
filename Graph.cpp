@@ -223,3 +223,45 @@ int* Graph::getNodeCoordinates(Node *node) {
 
 	return coords;
 }
+
+String Graph::getNodeStreetAddress(Node *address, int index) {
+	if(address == nullptr) {
+		return "";
+	}
+
+	int *coords = this->getNodeCoordinates(address);
+
+	int *buildingCoords = new int[2];
+
+	buildingCoords[0] = coords[0];
+	buildingCoords[1] = coords[1];
+
+	if(index == SOUTH_INDEX) {
+		buildingCoords[0]++;
+	} else if(index == NORTH_INDEX) {
+		buildingCoords[0]--;
+	} else if(index == EAST_INDEX) {
+		buildingCoords[1]++;
+	} else if(index == WEST_INDEX) {
+		buildingCoords[1]--;
+	}
+
+	String buildingList[][] = new String[6][6];
+	buildingList[1][1] = "A";
+	buildingList[1][3] = "B";
+	buildingList[1][5] = "C";
+
+	buildingList[3][1] = "D";
+	buildingList[3][3] = "E";
+	buildingList[3][5] = "F";
+
+	buildingList[5][1] = "G";
+	buildingList[5][3] = "H";
+	buildingList[5][5] = "I";
+
+	if(buildingList[buildingCoords[0]][buildingCoords[1]] != nullptr) {
+		return buildingList[buildingCoords[0]][buildingCoords[1]];
+	}
+
+	return "";
+}
