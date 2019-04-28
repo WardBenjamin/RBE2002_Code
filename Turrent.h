@@ -12,13 +12,13 @@
 #include <Arduino.h>
 #include <BasicStepperDriver.h>
 
-#define FIRE_DURATION_MS 10000 // how long to fire in milliseconds
-#define FIRE_SPEED 400 //the speed in degrees per second to rotate the motor
+#define FIRE_DURATION_MS 1000 // how long to fire in milliseconds
+#define FIRE_SPEED 200 //the speed in degrees per second to rotate the motor
 
 #define SWEEP_STEP_RANGE 10 //the range of steps to sweep
 
 enum TurrentState {
-	TURN_TURRENT, FIRE, SWEEP, STANDBY_TURRENT
+	FIRE, STANDBY_TURRENT, SWEEP
 };
 
 class Turrent {
@@ -31,8 +31,6 @@ private:
 
 	int currentSweepSteps;
 	bool sweepRight;
-
-	void sweeping();
 public:
 	Turrent(PIDMotor*, BasicStepperDriver *stepper);
 	virtual ~Turrent();

@@ -84,6 +84,7 @@ void DrivingActionManager::performNextAction() {
 		}
 
 		head->perform(this->chassis, turrent);
+		this->chassis->getIMU()->addStreetAddress((float) graph->getStreetName(head->getEndNode()));
 
 		if (new_head == nullptr) {
 			scout(head->getEndNode());
@@ -103,8 +104,7 @@ void DrivingActionManager::loop() {
 	if (chassis->getState() == DRIVING) {
 		chassis->loop();
 	} else if (turrent->getState() == TurrentState::SWEEP
-			|| turrent->getState() == TurrentState::FIRE
-			|| turrent->getState() == TurrentState::TURN_TURRENT) {
+			|| turrent->getState() == TurrentState::FIRE) {
 		turrent->loop();
 	} else if (hasNext()) {
 		performNextAction();
@@ -136,7 +136,7 @@ void DrivingActionManager::pathToDrivingActions(Node *end) {
 					new DrivingAction(TURN, 270, curr->predecessor));
 		} else if (curr->predecessor->getNorthEdge() == edge) {
 			actions.insert(actions.begin(),
-					new DrivingAction(TURN, 360, curr->predecessor));
+					new DrivingAction(TURN, 0, curr->predecessor));
 		} else if (curr->predecessor->getSouthEdge() == edge) {
 			actions.insert(actions.begin(),
 					new DrivingAction(TURN, 180, curr->predecessor));

@@ -97,7 +97,7 @@ StudentsRobot::StudentsRobot(PIDMotor * motor1, PIDMotor * motor2,
 	rf = new RangeFinder(ANALOG_SENSE_TWO);
 
 	this->chassis = new DrivingChassis(rf, this->motor1, this->motor2, 220, 25.4, IMU);
-	this->turrent = new Turrent(this->motor3, new BasicStepperDriver(200, STEPPER_DIRECTION, STEPPER_STEP));
+	this->turrent = new Turrent(this->motor3, new BasicStepperDriver(200, 33, 32));
 
 	this->manager = new DrivingActionManager(chassis, turrent);
 
@@ -117,8 +117,8 @@ void StudentsRobot::updateStateMachine() {
 	case StartupRobot:
 
 		if(!loaded) {
-			//this->manager->scout(this->manager->getGraph()->getNodeAt(0,0));
-			this->manager->setPath(0, 0, 2, 3);
+			this->manager->scout(this->manager->getGraph()->getNodeAt(0,0));
+
 			loaded = false;
 		}
 		//Do this once at startup

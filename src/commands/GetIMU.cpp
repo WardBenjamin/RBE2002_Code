@@ -89,8 +89,8 @@ void GetIMU::addToXPosition(float x){
 void GetIMU::addToYPosition(float y){
 	bufferINTERNAL[13] += y;
 }
-void GetIMU::addToZPosition(float z){
-	bufferINTERNAL[14] += z;
+void GetIMU::addStreetAddress(float z){
+	bufferINTERNAL[14] = z;
 }
 
 float GetIMU::getLINEARACCEL_X() {

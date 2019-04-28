@@ -37,7 +37,7 @@ void DrivingAction::perform(DrivingChassis *chassis, Turrent *turrent) {
 	} else if (action == Action::DRIVE) {
 		chassis->driveForward(param, param * MS_PER_MILIMETER);
 	} else if(action == Action::CHECK) {
-		//turrent->checkFire();
+		turrent->sweep();
 	}
 }
 void DrivingAction::printDrivingAction() {

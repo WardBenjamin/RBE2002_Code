@@ -19,6 +19,8 @@ private:
 	Node *startNode;
 
 	Node *nodeMap[6][6];
+
+	int getBuildingNumber(Node *address, int direction);
 public:
 	Graph();
 	virtual ~Graph();
@@ -35,8 +37,9 @@ public:
 	void resetGraphCost();
 	void printGraph(int, int);
 
+	int getStreetName(Node *address);
 
-	String getNodeStreetAddress(Node*, int);
+	int getNodeStreetAddress(Node*, int);
 
 };
 

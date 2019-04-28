@@ -71,7 +71,7 @@ public:
 
 	void addToXPosition(float x);
 	void addToYPosition(float y);
-	void addToZPosition(float z);
+	void addStreetAddress(float z);
 
 	void setGlobalAngle();
 

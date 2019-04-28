@@ -30,6 +30,9 @@ void Graph::createGraph() {
 				nodeMap[x][y] = new Node(MIDPOINT);
 			}
 
+			/*
+			 * This should east corresponds to y and west y-1, this may be the source of the error
+			 */
 			if (x > 0 && nodeMap[x - 1][y] != nullptr) {
 				Node::Edge *east = new Node::Edge;
 				east->source = nodeMap[x - 1][y];
@@ -51,6 +54,9 @@ void Graph::createGraph() {
 
 				nodeMap[x - 1][y]->setEasternEdge(east);
 				nodeMap[x][y]->setWesternEdge(west);
+
+				/*nodeMap[x - 1][y]->setNorthernEdge(east);
+				nodeMap[x][y]->setSouthernEdge(east);*/
 			}
 
 			if (y > 0 && nodeMap[x][y - 1] != nullptr) {
@@ -74,6 +80,9 @@ void Graph::createGraph() {
 
 				nodeMap[x][y - 1]->setSouthernEdge(south);
 				nodeMap[x][y]->setNorthernEdge(north);
+
+				/*nodeMap[x][y - 1]->setWesternEdge(south);
+				nodeMap[x][y]->setEasternEdge(north);*/
 			}
 
 		}
@@ -224,44 +233,59 @@ int* Graph::getNodeCoordinates(Node *node) {
 	return coords;
 }
 
-String Graph::getNodeStreetAddress(Node *address, int index) {
-	if(address == nullptr) {
-		return "";
+int Graph::getNodeStreetAddress(Node *address, int index) {
+	if (address == nullptr) {
+		return -1;
 	}
 
+	return getBuildingNumber(address, index) +  getStreetName(address);
+}
+
+int Graph::getBuildingNumber(Node *address, int index) {
 	int *coords = this->getNodeCoordinates(address);
 
-	int *buildingCoords = new int[2];
+	if (address->getType() == NodeType::MIDPOINT) {
+		if(coords[0] == 0 || coords[0] == 2 || coords[0] == 4) {
+			int number = 100 * (coords[1]);
 
-	buildingCoords[0] = coords[0];
-	buildingCoords[1] = coords[1];
+			if(index == SOUTH_INDEX && coords[0] != 0) {
+				number += 100;
+			}
 
-	if(index == SOUTH_INDEX) {
-		buildingCoords[0]++;
-	} else if(index == NORTH_INDEX) {
-		buildingCoords[0]--;
-	} else if(index == EAST_INDEX) {
-		buildingCoords[1]++;
-	} else if(index == WEST_INDEX) {
-		buildingCoords[1]--;
+			return number / 10;
+
+		} else {
+			int number = 600 - (100 * coords[0]);
+
+			if(index == EAST_INDEX && coords[1] != 0) {
+				number += 100;
+			}
+
+			return number / 10;
+
+		}
+	}
+	return -1;
+
+}
+int Graph::getStreetName(Node *address) {
+	int *coords = this->getNodeCoordinates(address);
+
+	if (address->getType() == NodeType::MIDPOINT) {
+		if (coords[0] == 0) { //oak street
+			return 0;
+		} else if(coords[0] == 2) { // beech street
+			return 100;
+		} else if(coords[0] == 4) { //maple
+			return 200;
+		} else if(coords[1] == 0) { //1st ave
+			return 300;
+		} else if(coords[1] == 2) { // 2nd ave
+			return 400;
+		} else if(coords[1] == 4) { //3rd ave
+			return 500;
+		}
 	}
 
-	String buildingList[][] = new String[6][6];
-	buildingList[1][1] = "A";
-	buildingList[1][3] = "B";
-	buildingList[1][5] = "C";
-
-	buildingList[3][1] = "D";
-	buildingList[3][3] = "E";
-	buildingList[3][5] = "F";
-
-	buildingList[5][1] = "G";
-	buildingList[5][3] = "H";
-	buildingList[5][5] = "I";
-
-	if(buildingList[buildingCoords[0]][buildingCoords[1]] != nullptr) {
-		return buildingList[buildingCoords[0]][buildingCoords[1]];
-	}
-
-	return "";
+	return 600; //intersection
 }
