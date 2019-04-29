@@ -43,48 +43,49 @@ void DrivingActionManager::performNextAction() {
 			&& !isinf(this->chassis->getIMU()->getAngle())) {
 		DrivingAction* new_head = head->getNextDrivingAction();
 
-		if (head->getAction() == Action::DRIVE && this->chassis->getRangeFinder()->isRoadblock()) {
-				Serial.println("[DrivingActionManager] Roadblock detected");
+		if (head->getAction() == Action::DRIVE
+				&& this->chassis->getRangeFinder()->isRoadblock()) {
+			Serial.println("[DrivingActionManager] Roadblock detected");
 
-				Node *badNode = head->getEndNode();
-				Node *startNode = badNode->predecessor;
+			Node *badNode = head->getEndNode();
+			Node *startNode = badNode->predecessor;
 
-				for (int x = 0; x < 4; x++) {
-					if (startNode->edges[x] != nullptr
-							&& startNode->edges[x]->destination == badNode) {
-						startNode->deleteEdge(x); //delete the edge with the roadblock
-						break;
-					}
+			for (int x = 0; x < 4; x++) {
+				if (startNode->edges[x] != nullptr
+						&& startNode->edges[x]->destination == badNode) {
+					startNode->deleteEdge(x); //delete the edge with the roadblock
+					break;
 				}
+			}
 
-				int *startCoords = graph->getNodeCoordinates(startNode);
+			int *startCoords = graph->getNodeCoordinates(startNode);
 
-				DrivingAction *endAction = head;
+			DrivingAction *endAction = head;
 
-				while (endAction->getNextDrivingAction() != nullptr) {
-					endAction = endAction->getNextDrivingAction();
-				}
+			while (endAction->getNextDrivingAction() != nullptr) {
+				endAction = endAction->getNextDrivingAction();
+			}
 
-				int *endCoords = graph->getNodeCoordinates(
-						endAction->getEndNode());
+			int *endCoords = graph->getNodeCoordinates(endAction->getEndNode());
 
-				Serial.println(
-						"[DrivingActionManager] Recalculating path from ("
-								+ String(startCoords[0]) + ", "
-								+ String(startCoords[1]) + ") Node #"
-								+ String(startNode->getID()) + " to ("
-								+ String(endCoords[0]) + ", "
-								+ String(endCoords[1]) + ") Node #"
-								+ String(endAction->getEndNode()->getID()));
+			Serial.println(
+					"[DrivingActionManager] Recalculating path from ("
+							+ String(startCoords[0]) + ", "
+							+ String(startCoords[1]) + ") Node #"
+							+ String(startNode->getID()) + " to ("
+							+ String(endCoords[0]) + ", " + String(endCoords[1])
+							+ ") Node #"
+							+ String(endAction->getEndNode()->getID()));
 
-				this->setPath(startCoords[0], startCoords[1], endCoords[0],
-						endCoords[1]);
+			this->setPath(startCoords[0], startCoords[1], endCoords[0],
+					endCoords[1]);
 
-				return;
+			return;
 		}
 
 		head->perform(this->chassis, turrent);
-		this->chassis->getIMU()->addStreetAddress((float) graph->getStreetName(head->getEndNode()));
+		this->chassis->getIMU()->addStreetAddress(
+				(float) graph->getStreetName(head->getEndNode()));
 
 		if (new_head == nullptr) {
 			scout(head->getEndNode());
@@ -121,8 +122,35 @@ void DrivingActionManager::pathToDrivingActions(Node *end) {
 		Node::Edge *edge = graph->findConnectingEdge(curr->predecessor, curr);
 
 		if (curr->getType() == MIDPOINT) {
-			actions.insert(actions.begin(),
-					new DrivingAction(Action::CHECK, 0, curr));
+
+			int *coords = graph->getNodeCoordinates(end);
+
+			if (coords[0] % 2 == 0) {
+				actions.insert(actions.begin(),
+						new DrivingAction(Action::TURN, 270, curr));
+
+				actions.insert(actions.begin(),
+						new DrivingAction(Action::CHECK, 0, curr));
+
+				actions.insert(actions.begin(),
+						new DrivingAction(Action::TURN, 90, curr));
+
+				actions.insert(actions.begin(),
+						new DrivingAction(Action::CHECK, 0, curr));
+			} else {
+				actions.insert(actions.begin(),
+						new DrivingAction(Action::TURN, 0, curr));
+
+				actions.insert(actions.begin(),
+						new DrivingAction(Action::CHECK, 0, curr));
+
+				actions.insert(actions.begin(),
+						new DrivingAction(Action::TURN, 180, curr));
+
+				actions.insert(actions.begin(),
+						new DrivingAction(Action::CHECK, 0, curr));
+			}
+
 		}
 
 		actions.insert(actions.begin(),

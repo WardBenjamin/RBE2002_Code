@@ -11,6 +11,7 @@
 #include "src/pid/PIDMotor.h"
 #include <Arduino.h>
 #include <BasicStepperDriver.h>
+#include "src/commands/IRCamSimplePacketComsServer.h"
 
 #define FIRE_DURATION_MS 1000 // how long to fire in milliseconds
 #define FIRE_SPEED 200 //the speed in degrees per second to rotate the motor
@@ -31,8 +32,10 @@ private:
 
 	int currentSweepSteps;
 	bool sweepRight;
+
+	IRCamSimplePacketComsServer *IRCamera;
 public:
-	Turrent(PIDMotor*, BasicStepperDriver *stepper);
+	Turrent(PIDMotor*, BasicStepperDriver *stepper, IRCamSimplePacketComsServer *);
 	virtual ~Turrent();
 
 	/**

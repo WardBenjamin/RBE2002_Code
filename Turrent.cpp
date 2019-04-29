@@ -7,15 +7,17 @@
 
 #include "Turrent.h"
 
-Turrent::Turrent(PIDMotor *firingMotor, BasicStepperDriver *stepper) {
+Turrent::Turrent(PIDMotor *firingMotor, BasicStepperDriver *stepper, IRCamSimplePacketComsServer * IRCamera) {
 	this->firingMotor = firingMotor;
 	this->stepper = stepper;
 
-	this->stepper->begin(1, 1);
+	this->stepper->begin(10, 1);
 
 	this->state = TurrentState::STANDBY_TURRENT;
 
 	this->fireStartTime = 0;
+
+	this->IRCamera = IRCamera;
 }
 
 Turrent::~Turrent() {}
@@ -39,28 +41,38 @@ void Turrent::fire() {
 }
 
 bool Turrent::checkFire(){
+
+
+
+	for(int x = 0; x < 4; x++) {
+		if(IRCamera->readY(x) < 900) {
+			Serial.println("[Turrent] The FIRE HAS BEEN FOUND");
+			fire();
+			return true;
+		}
+ 	}
+
 	return false;
 }
 
 void Turrent::sweep() {
 	this->state = TurrentState::SWEEP;
 
-	this->stepper->rotate(90);
+//	this->stepper->rotate(100);
 
 	if(checkFire()) {
 		fire();
 		return;
 	}
 
-	this->stepper->rotate(-90);
-	this->stepper->rotate(-90);
+	//this->stepper->rotate(-100);
+	//this->stepper->rotate(-100);
 
 	if(checkFire()) {
 		fire();
 		return;
 	}
 
-	this->stepper->rotate(90); // reset to the starting positon
 
 	this->state = TurrentState::STANDBY_TURRENT;
 
