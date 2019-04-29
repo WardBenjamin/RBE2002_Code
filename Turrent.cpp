@@ -47,6 +47,8 @@ bool Turrent::checkFire(){
 	for(int x = 0; x < 4; x++) {
 		if(IRCamera->readY(x) < 900) {
 			Serial.println("[Turrent] The FIRE HAS BEEN FOUND");
+
+
 			fire();
 			return true;
 		}

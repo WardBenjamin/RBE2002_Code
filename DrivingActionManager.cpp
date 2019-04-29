@@ -181,7 +181,10 @@ void DrivingActionManager::pathToDrivingActions(Node *end) {
 	}
 }
 void DrivingActionManager::setPath(int xStart, int yStart, int xEnd, int yEnd) {
-	this->head = nullptr; //clear the previous path
+	this->head = new DrivingAction(Action::DRIVE, 0, graph->getNodeAt(xStart, yStart));
+
+	Serial.println("[DrivingActionManager] setPath(" + String(xStart) + ", " + String(yStart) + ", " + String(xEnd) + ", " + String(yEnd) + ")");
+	Serial.println("\t-> From Node #" + String(graph->getNodeAt(xStart, yStart)->getID()) + " to Node #" + String(graph->getNodeAt(xEnd, yEnd)->getID()));
 
 	Node *end = this->graph->setBestPath(xStart, yStart, xEnd, yEnd);
 	pathToDrivingActions(end);
@@ -225,9 +228,9 @@ void DrivingActionManager::scout(Node *startNode) {
 
 		}
 
-		/*Serial.println(
+		Serial.println(
 		 "scout(" + String(currX) + "," + String(currY) + ","
-		 + String(newX) + "," + String(newY) + ")");*/
+		 + String(newX) + "," + String(newY) + ")");
 		this->setPath(currX, currY, newX, newY);
 	} else {
 		this->setPath(currX, currY, 0, 0);

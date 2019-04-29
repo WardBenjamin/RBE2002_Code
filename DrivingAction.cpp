@@ -35,7 +35,12 @@ void DrivingAction::perform(DrivingChassis *chassis, Turrent *turrent) {
 		chassis->turnDegrees(degreesToTurn, abs(degreesToTurn) * MS_PER_DEGREE);
 
 	} else if (action == Action::DRIVE) {
-		chassis->driveForward(param, param * MS_PER_MILIMETER);
+
+		if(param != 0) {
+			chassis->driveForward(param, param * MS_PER_MILIMETER);
+		} else {
+			chassis->driveForward(param, 2000);
+		}
 	} else if(action == Action::CHECK) {
 		turrent->sweep();
 	}
