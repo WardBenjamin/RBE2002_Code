@@ -11,7 +11,7 @@ Turrent::Turrent(PIDMotor *firingMotor, BasicStepperDriver *stepper, IRCamSimple
 	this->firingMotor = firingMotor;
 	this->stepper = stepper;
 
-	this->stepper->begin(10, 1);
+	//this->stepper->begin(10, 1);
 
 	this->state = TurrentState::STANDBY_TURRENT;
 
@@ -41,15 +41,18 @@ void Turrent::fire() {
 }
 
 bool Turrent::checkFire(){
-
+	if(!fireFound && millis() - fireStartTime > 1000) {
+		this->state = TurrentState::STANDBY_TURRENT;
+	}
 
 
 	for(int x = 0; x < 4; x++) {
 		if(IRCamera->readY(x) < 900) {
 			Serial.println("[Turrent] The FIRE HAS BEEN FOUND");
 
+			fireFound = true;
 
-			fire();
+			this->state = TurrentState::STANDBY_TURRENT;
 			return true;
 		}
  	}
@@ -60,23 +63,17 @@ bool Turrent::checkFire(){
 void Turrent::sweep() {
 	this->state = TurrentState::SWEEP;
 
-//	this->stepper->rotate(100);
 
 	if(checkFire()) {
 		fire();
 		return;
 	}
-
-	//this->stepper->rotate(-100);
-	//this->stepper->rotate(-100);
-
 	if(checkFire()) {
 		fire();
 		return;
 	}
 
-
-	this->state = TurrentState::STANDBY_TURRENT;
+	fireStartTime  = millis();
 
 }
 

@@ -14,7 +14,7 @@
 #include "Arduino.h"
 
 
-#define MS_PER_DEGREE 40
+#define MS_PER_DEGREE 80
 #define MS_PER_MILIMETER 20
 
 enum Action {

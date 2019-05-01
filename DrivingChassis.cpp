@@ -172,7 +172,7 @@ void DrivingChassis::driveForward(float mmDistanceFromCurrent, int msDuration) {
  * 		 allow for relative moves. Otherwise the motor is always in ABSOLUTE mode
  */
 void DrivingChassis::turnDegrees(float degreesToRotateBase, int msDuration) {
-	if(absFloat(degreesToRotateBase) > 5) {
+	if(absFloat(degreesToRotateBase) > 45) {
 		resetAngle = true;
 	}
 
@@ -203,6 +203,8 @@ void DrivingChassis::turnDegrees(float degreesToRotateBase, int msDuration) {
 	lastLeftEncoder = 0;
 	lastRightEncoder = 0;
 	lastAngle = 0;
+
+	isYCorrectionMode = false;
 }
 
 /**
@@ -281,13 +283,13 @@ void DrivingChassis::loop() {
 		 + ") = " + String(yOut));*/
 
 		float angleOut = anglePID->calc(targetAngle, getAngle()); //remove angle toggle point by subtracting 150
-		/*Serial.println(
+	/*	Serial.println(
 		 "\tanglePID->calc(" + String(targetAngle) + ", "
 		 + String(getAngle()) + ") = " + String(angleOut));*/
 
 		//.println();
 		//4. choose y or theta correction term
-		float upperLimit = 0.3, switchLimit = 0.01;
+		float upperLimit = 0.3, switchLimit = 0.1;
 
 		float turningTerm = angleOut;
 

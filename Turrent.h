@@ -33,6 +33,8 @@ private:
 	int currentSweepSteps;
 	bool sweepRight;
 
+	bool fireFound = false;;
+
 	IRCamSimplePacketComsServer *IRCamera;
 public:
 	Turrent(PIDMotor*, BasicStepperDriver *stepper, IRCamSimplePacketComsServer *);
@@ -63,6 +65,10 @@ public:
 
 	TurrentState getState() const {
 		return state;
+	}
+
+	bool isFireFound() const {
+		return fireFound;
 	}
 
 };

@@ -35,6 +35,7 @@ public:
 
 	Node(NodeType);
 	virtual ~Node();
+	bool blocked = false;
 
 	Edge *edges[4];
 

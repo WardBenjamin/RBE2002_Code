@@ -17,8 +17,8 @@
 #define RM_MULT 1
 #define LM_MULT -1
 //#define showIMU
-#define FORWARD_SPEED 400
-#define TURNING_SPEED 400
+#define FORWARD_SPEED 300
+#define TURNING_SPEED 300
 
 enum ChassisState {
 	DRIVING, DONE, STANDBY

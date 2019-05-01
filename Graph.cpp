@@ -150,7 +150,7 @@ Node* Graph::setBestPath(int startX, int startY, int endX, int endY) {
 						lowestCost->edges[x]->lengthX
 								* lowestCost->edges[x]->lengthX
 								+ lowestCost->edges[x]->lengthY
-										* lowestCost->edges[x]->lengthY);
+										* lowestCost->edges[x]->lengthY) +  lowestCost->blocked * 10000;
 			}
 
 			child->h = 0; //change later for true implementation

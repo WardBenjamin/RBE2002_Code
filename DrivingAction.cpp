@@ -32,14 +32,14 @@ void DrivingAction::perform(DrivingChassis *chassis, Turrent *turrent) {
 
 		float currentAngle = chassis->getIMU()->getAngle();
 		float degreesToTurn = param - currentAngle;
+
+		//Serial.println("Turn: " + String(degreesToTurn));
 		chassis->turnDegrees(degreesToTurn, abs(degreesToTurn) * MS_PER_DEGREE);
 
 	} else if (action == Action::DRIVE) {
 
 		if(param != 0) {
 			chassis->driveForward(param, param * MS_PER_MILIMETER);
-		} else {
-			chassis->driveForward(param, 2000);
 		}
 	} else if(action == Action::CHECK) {
 		turrent->sweep();

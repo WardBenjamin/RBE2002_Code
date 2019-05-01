@@ -41,22 +41,33 @@ void DrivingActionManager::addDrivingAction(DrivingAction *action) {
 void DrivingActionManager::performNextAction() {
 	if (head != nullptr && !isnan(this->chassis->getIMU()->getAngle())
 			&& !isinf(this->chassis->getIMU()->getAngle())) {
+
+		if(turrent->isFireFound()) {
+			Serial.println("Fire found shutting down");
+			return;
+		}
+
+
 		DrivingAction* new_head = head->getNextDrivingAction();
 
-		if (head->getAction() == Action::DRIVE
-				&& this->chassis->getRangeFinder()->isRoadblock()) {
+		if(head != nullptr) {
+			Serial.println("Head End Node:");
+			head->getEndNode()->printNode();
+		}
+
+		if (head->getAction() == Action::DRIVE && head->getValue() != 0 &&
+				this->chassis->getRangeFinder()->isRoadblock()) {
 			Serial.println("[DrivingActionManager] Roadblock detected");
 
 			Node *badNode = head->getEndNode();
+
 			Node *startNode = badNode->predecessor;
 
-			for (int x = 0; x < 4; x++) {
-				if (startNode->edges[x] != nullptr
-						&& startNode->edges[x]->destination == badNode) {
-					startNode->deleteEdge(x); //delete the edge with the roadblock
-					break;
-				}
+			if(startNode == nullptr) {
+				startNode = badNode;
 			}
+
+			badNode->blocked = true;
 
 			int *startCoords = graph->getNodeCoordinates(startNode);
 
@@ -77,8 +88,7 @@ void DrivingActionManager::performNextAction() {
 							+ ") Node #"
 							+ String(endAction->getEndNode()->getID()));
 
-			this->setPath(startCoords[0], startCoords[1], endCoords[0],
-					endCoords[1]);
+			this->setPath(startCoords[0], startCoords[1], endCoords[0],endCoords[1]);
 
 			return;
 		}
@@ -126,29 +136,30 @@ void DrivingActionManager::pathToDrivingActions(Node *end) {
 			int *coords = graph->getNodeCoordinates(end);
 
 			if (coords[0] % 2 == 0) {
-				actions.insert(actions.begin(),
-						new DrivingAction(Action::TURN, 270, curr));
 
 				actions.insert(actions.begin(),
-						new DrivingAction(Action::CHECK, 0, curr));
+						new DrivingAction(Action::CHECK, 0, curr->predecessor));
+				actions.insert(actions.begin(),
+						new DrivingAction(Action::TURN, 270, curr->predecessor));
 
 				actions.insert(actions.begin(),
-						new DrivingAction(Action::TURN, 90, curr));
+						new DrivingAction(Action::CHECK, 0, curr->predecessor));
 
 				actions.insert(actions.begin(),
-						new DrivingAction(Action::CHECK, 0, curr));
+						new DrivingAction(Action::TURN, 90, curr->predecessor));
 			} else {
-				actions.insert(actions.begin(),
-						new DrivingAction(Action::TURN, 0, curr));
 
 				actions.insert(actions.begin(),
-						new DrivingAction(Action::CHECK, 0, curr));
+						new DrivingAction(Action::CHECK, 0, curr->predecessor));
+				actions.insert(actions.begin(),
+						new DrivingAction(Action::TURN, 360, curr->predecessor));
 
 				actions.insert(actions.begin(),
-						new DrivingAction(Action::TURN, 180, curr));
+						new DrivingAction(Action::CHECK, 0, curr->predecessor));
 
 				actions.insert(actions.begin(),
-						new DrivingAction(Action::CHECK, 0, curr));
+						new DrivingAction(Action::TURN, 180, curr->predecessor));
+
 			}
 
 		}
@@ -186,7 +197,7 @@ void DrivingActionManager::setPath(int xStart, int yStart, int xEnd, int yEnd) {
 	Serial.println("[DrivingActionManager] setPath(" + String(xStart) + ", " + String(yStart) + ", " + String(xEnd) + ", " + String(yEnd) + ")");
 	Serial.println("\t-> From Node #" + String(graph->getNodeAt(xStart, yStart)->getID()) + " to Node #" + String(graph->getNodeAt(xEnd, yEnd)->getID()));
 
-	Node *end = this->graph->setBestPath(xStart, yStart, xEnd, yEnd);
+	Node *end = this->graph->setBestPath(yStart, xStart, yEnd, xEnd);
 	pathToDrivingActions(end);
 }
 void DrivingActionManager::scout(Node *startNode) {
